@@ -91,13 +91,41 @@ void terminal_putentry_at(char c, uint8_t colour, size_t x, size_t y)
     terminal_buffer[index] = vga_entry(c, colour);
 }
 
+void terminal_last_line_init()
+{
+    terminal_colour = vga_entry_colour(VGA_COLOUR_LIGHT_GREY, VGA_COLOUR_BLUE);
+
+    for(size_t x = 0; x < VGA_WIDTH; x++)
+    {
+        const size_t index = 25 * VGA_WIDTH + x;
+        terminal_buffer[index] = vga_entry(' ', terminal_colour);
+    }
+}
+
+void terminal_scroll()
+{
+    terminal_last_line_init();
+
+    for(size_t y = 0; y < VGA_HEIGHT; y++)
+    {
+        for(size_t x = 0; x < VGA_WIDTH; x++)
+        {
+            const size_t index = y * VGA_WIDTH + x;
+            const size_t source = (y + 1) * VGA_WIDTH + x;
+            terminal_buffer[index] = terminal_buffer[source];
+        }
+    }
+    terminal_row = 24;
+    
+}
+
 void terminal_put_char(char c)
 {
     if(c == '\n')
     {
         if(++terminal_row == VGA_HEIGHT)
         {
-            terminal_row = 0;
+            terminal_scroll();
         }
 
         terminal_column = 0;
@@ -112,7 +140,7 @@ void terminal_put_char(char c)
 
             if(++terminal_row == VGA_HEIGHT)
             {
-                terminal_row = 0;
+                terminal_scroll();
             }
         }
     }
@@ -133,23 +161,19 @@ void terminal_write_string(const char* data)
     terminal_write(data, strlen(data));
 }
 
-void spit_lines(void)
-{
-    for(int i = 0; i < 25; i++)
-    {
-        terminal_write_string("This is a line.\n");
-    }
-
-    terminal_write_string("This is a different line.\n");
-    terminal_write_string("And another one.\n");
-}
-
 void kernel_main(void)
 {
     /* Initialise terminal interface */
     terminal_init();
 
-    spit_lines();
+    /*terminal_write_string("1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n\n\n\n");*/
 
-    /* terminal_write_string ("Hello, baby Acorn!\nLine 2\n"); */
+    for(int i = 0; i < 35; i++)
+    {
+        terminal_write_string("I am random text, I promise. whahahahahahahaha. 123");
+    }
+
+    terminal_write_string("\n\n\n\n\n");
+
+    /*terminal_write_string("\n\n\nHello little Acorn! :)\n\n");*/
 }
