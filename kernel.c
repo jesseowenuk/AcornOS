@@ -67,7 +67,7 @@ void terminal_init(void)
 {
     terminal_row = 0;
     terminal_column = 0;
-    terminal_colour = vga_entry_colour(VGA_COLOUR_LIGHT_GREY, VGA_COLOUR_BLUE);
+    terminal_colour = vga_entry_colour(VGA_COLOUR_GREEN, VGA_COLOUR_BLACK);
     terminal_buffer = (uint16_t*) 0xB8000;
 
     for(size_t y = 0; y < VGA_HEIGHT; y++)
@@ -93,7 +93,7 @@ void terminal_putentry_at(char c, uint8_t colour, size_t x, size_t y)
 
 void terminal_last_line_init()
 {
-    terminal_colour = vga_entry_colour(VGA_COLOUR_LIGHT_GREY, VGA_COLOUR_BLUE);
+    terminal_colour = vga_entry_colour(VGA_COLOUR_GREEN, VGA_COLOUR_BLACK);
 
     for(size_t x = 0; x < VGA_WIDTH; x++)
     {
@@ -161,19 +161,49 @@ void terminal_write_string(const char* data)
     terminal_write(data, strlen(data));
 }
 
+void print_007()
+{
+    terminal_write_string("     0000             0000        7777777777777777/========___________\n");
+    terminal_colour = vga_entry_colour(VGA_COLOUR_BLUE, VGA_COLOUR_BLACK);
+    terminal_write_string("   00000000         00000000      7777^^^^^^^7777/ || ||   ___________\n");
+    terminal_colour = vga_entry_colour(VGA_COLOUR_RED, VGA_COLOUR_BLACK);
+    terminal_write_string("  000    000       000    000     777       7777/=========//\n");
+    terminal_write_string("000      000     000      000             7777// ((     //\n");
+    terminal_colour = vga_entry_colour(VGA_COLOUR_LIGHT_CYAN, VGA_COLOUR_BLACK);
+    terminal_write_string("0000      0000   0000      0000           7777//   \\   //\n");
+    terminal_colour = vga_entry_colour(VGA_COLOUR_LIGHT_MAGENTA, VGA_COLOUR_BLACK);
+    terminal_write_string("0000      0000   0000      0000          7777//========//\n");
+    terminal_colour = vga_entry_colour(VGA_COLOUR_LIGHT_GREY, VGA_COLOUR_BLACK);
+    terminal_write_string("0000      0000   0000      0000         7777\n");
+    terminal_colour = vga_entry_colour(VGA_COLOUR_LIGHT_RED, VGA_COLOUR_BLACK);
+    terminal_write_string("0000      0000   0000      0000        7777\n");
+    terminal_colour = vga_entry_colour(VGA_COLOUR_LIGHT_BROWN, VGA_COLOUR_BLACK);
+    terminal_write_string(" 000      000     000      000        7777\n");
+    terminal_colour = vga_entry_colour(VGA_COLOUR_GREEN, VGA_COLOUR_BLACK);
+    terminal_write_string("  000    000       000    000       77777\n");
+    terminal_colour = vga_entry_colour(VGA_COLOUR_CYAN, VGA_COLOUR_BLACK);
+    terminal_write_string("   00000000         00000000       7777777\n");
+    terminal_colour = vga_entry_colour(VGA_COLOUR_WHITE, VGA_COLOUR_BLACK);
+    terminal_write_string("     0000             0000        777777777\n\n\n");
+    terminal_colour = vga_entry_colour(VGA_COLOUR_LIGHT_GREEN, VGA_COLOUR_BLACK);
+    terminal_write_string("Unknown\n");
+}
+
 void kernel_main(void)
 {
     /* Initialise terminal interface */
     terminal_init();
 
+    print_007();
+
     /*terminal_write_string("1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n\n\n\n");*/
 
-    for(int i = 0; i < 35; i++)
+    /*for(int i = 0; i < 35; i++)
     {
         terminal_write_string("I am random text, I promise. whahahahahahahaha. 123");
     }
 
-    terminal_write_string("\n\n\n\n\n");
+    terminal_write_string("\n\n\n\n\n");*/
 
     /*terminal_write_string("\n\n\nHello little Acorn! :)\n\n");*/
 }
