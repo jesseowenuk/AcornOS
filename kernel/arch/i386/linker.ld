@@ -16,7 +16,7 @@ SECTIONS
     order to give the loader freedom in selecting a span of memory which is verified to 
     be available by the firmware, in order to work around this issue. This does not use
     that feature, so 2M was chosen as a safer option that the traditional 1M. */
-    . = 2M;
+    . = 1M;
 
     /* First put the multiboot header, as it is required to be very early 
     in the image or the bootloader won't recognise the file format.

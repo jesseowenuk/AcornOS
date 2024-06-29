@@ -41,6 +41,7 @@ The linker script specifies _start as the entry point to the kernel and the boot
 will jump to this position once the kernel has been loaded. It
 doesn't make sense to return from this function as the bootloader is gone!
 */
+/* THE KERNEL ENTRY POINT */
 .section .text
 .global _start
 .type _start, @function
@@ -74,6 +75,7 @@ _start:
     C++ features such as global contructors and exceptions will require
     runtime support to work as well.
     */
+    call _init
 
     /*
     Enter the high-level kernel. The ABI requires the stack is 16-byte
