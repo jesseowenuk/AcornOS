@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 #include <kernel/tty.h>
 
 void kernel_main(void)
@@ -5,5 +7,5 @@ void kernel_main(void)
     /* Initialise terminal interface */
     terminal_init();
 
-    terminal_write_string("Hello AcornOS!\n");
+    printf("Hello AcornOS!\n");
 }
