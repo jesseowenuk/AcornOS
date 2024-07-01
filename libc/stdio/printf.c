@@ -4,6 +4,27 @@
 #include <stdio.h>
 #include <string.h>
 
+/* Define the decimal numbers */
+#define DIGIT_0 48
+#define DIGIT_1 49
+#define DIGIT_2 50
+#define DIGIT_3 51
+#define DIGIT_4 52
+#define DIGIT_5 53
+#define DIGIT_6 54
+#define DIGIT_7 55
+#define DIGIT_8 56
+#define DIGIT_9 57
+
+/* Expand above to Hex */
+#define HEX_10 65
+#define HEX_11 66
+#define HEX_12 67
+#define HEX_13 68
+#define HEX_14 69
+#define HEX_15 70
+
+
 static bool print(const char* data, size_t length)
 {
     const unsigned char* bytes = (const unsigned char*) data;
@@ -17,6 +38,76 @@ static bool print(const char* data, size_t length)
     }
 
     return true;
+}
+
+char decimalToString(int decimal)
+{
+    char c;
+
+    switch(decimal)
+    {
+        case 0:
+        {
+            c = DIGIT_0;
+        }
+        break;
+
+        case 1:
+        {
+            c = DIGIT_1;
+        }
+        break;
+
+        case 2:
+        {
+            c = DIGIT_2;
+        }
+        break;
+
+        case 3:
+        {
+            c = DIGIT_3;
+        }
+        break;
+
+        case 4:
+        {
+            c = DIGIT_4;
+        }
+        break;
+
+        case 5:
+        {
+            c = DIGIT_5;
+        }
+        break;
+
+        case 6:
+        {
+            c = DIGIT_6;
+        }
+        break;
+
+        case 7:
+        {
+            c = DIGIT_7;
+        }
+        break;
+
+        case 8:
+        {
+            c = DIGIT_8;
+        }
+        break;
+
+        case 9:
+        {
+            c = DIGIT_9;
+        }
+        break;
+    }
+
+    return c;
 }
 
 int printf(const char* restrict format, ...)
@@ -68,61 +159,102 @@ int printf(const char* restrict format, ...)
 
         const char* format_begun_at = format++;
 
-        if(*format == 'c')                                      /* is this format specifier for character*/
+        switch(*format)
         {
-            format++;
-            char c = (char) va_arg(parameters, int);            /* read off the first variadic argument - char promotes to int */
-
-            if(!max_remaining)
+            case 'd':
             {
-                // TODO: Set errno to EOVERFLOW.
-                return -1;
-            }
+                format++;
+                int decimal = va_arg(parameters, int); 
+                //size_t len = strlen(decimal);
 
-            if(!print(&c, sizeof(c)))
+                if(!max_remaining)
+                {
+                    // TODO: Set errno to EOVERFLOW
+                    return -1;
+                }
+
+                char str = decimalToString(decimal);
+
+                if(!print(&str, sizeof(str)))
+                {
+                    return -1;
+                }
+
+                written++;
+            }
+            break;
+
+            case 'c': 
             {
-                return -1;
+                format++;
+                char c = (char) va_arg(parameters, int);  /* read off the first variadic argument - char promotes to int */
+            
+                if(!max_remaining)
+                {
+                    // TODO: Set errno to EOVERFLOW.
+                    return -1;
+                }
+
+                if(!print(&c, sizeof(c)))
+                {
+                    return -1;
+                }
+
+                written++;
+            
             }
+            break;
 
-            written++;
-        }
-        else if(*format == 's')                                 /* is this format specifier a string? */
-        {
-            format++;
-            const char* str = va_arg(parameters, const char*);  /* read off the next variadic argument */
-            size_t len = strlen(str);
-
-            if(max_remaining < len)
+            case 's':
             {
-                // TODO: Set errno to EOVERFLOW.
-                return -1;
-            }
+                format++;
+                const char* str = va_arg(parameters, const char*);  /* read off the next variadic argument */
+                size_t len = strlen(str);
 
-            if(!print(str, len))
+                if(max_remaining < len)
+                {
+                    // TODO: Set errno to EOVERFLOW.
+                    return -1;
+                }
+
+                if(!print(str, len))
+                {
+                    return -1;
+                }
+
+                written += len;
+            }
+            break;
+
+            case 'x':
             {
-                return -1;
+                format = format_begun_at;
+                size_t length = strlen(format);
+
+
             }
+            break;
 
-            written += len;
-        }
-        else
-        {
-            format = format_begun_at;
-            size_t len = strlen(format);
-
-            if(max_remaining < len)
+            default:
             {
-                // TODO: Set errno to EOVERFLOW.
-                return -1;
-            }
+                format = format_begun_at;
+                size_t len = strlen(format);
 
-            if(!print(format, len))
-            {
-                return -1;
-            }
+                if(max_remaining < len)
+                {
+                    // TODO: Set errno to EOVERFLOW.
+                    return -1;
+                }
 
-            written += len;
-            format += len;
+                if(!print(format, len))
+                {
+                    return -1;
+                }
+
+                written += len;
+                format += len;
+            }
+            break;
         }
     }
 
