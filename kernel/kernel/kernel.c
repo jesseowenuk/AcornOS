@@ -23,9 +23,9 @@ void kernel_main(unsigned long magic, unsigned long address)
         printf("Graphics Info not present\n");
     }
 
-    printf("Decimal Test:\n");
+    printf("Integer Test:\n");
 
-    for(int i = 0; i < 10; i++)
+    for(int i = 0; i < 11; i++)
     {
         printf("%d\n", i);
     }

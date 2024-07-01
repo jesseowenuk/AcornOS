@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#define ASCII_OFFSET 48
+
 /* Define the decimal numbers */
 #define DIGIT_0 48
 #define DIGIT_1 49
@@ -40,73 +42,19 @@ static bool print(const char* data, size_t length)
     return true;
 }
 
-char decimalToString(int decimal)
+char intToString(int integer)
 {
     char c;
-
-    switch(decimal)
+    if(integer < 10)
     {
-        case 0:
-        {
-            c = DIGIT_0;
-        }
-        break;
-
-        case 1:
-        {
-            c = DIGIT_1;
-        }
-        break;
-
-        case 2:
-        {
-            c = DIGIT_2;
-        }
-        break;
-
-        case 3:
-        {
-            c = DIGIT_3;
-        }
-        break;
-
-        case 4:
-        {
-            c = DIGIT_4;
-        }
-        break;
-
-        case 5:
-        {
-            c = DIGIT_5;
-        }
-        break;
-
-        case 6:
-        {
-            c = DIGIT_6;
-        }
-        break;
-
-        case 7:
-        {
-            c = DIGIT_7;
-        }
-        break;
-
-        case 8:
-        {
-            c = DIGIT_8;
-        }
-        break;
-
-        case 9:
-        {
-            c = DIGIT_9;
-        }
-        break;
+        c = integer + ASCII_OFFSET;
     }
-
+    else
+    {
+        // TODO: Implement numbers 10+
+        c = ASCII_OFFSET;
+    }
+    
     return c;
 }
 
@@ -164,7 +112,7 @@ int printf(const char* restrict format, ...)
             case 'd':
             {
                 format++;
-                int decimal = va_arg(parameters, int); 
+                int i = va_arg(parameters, int); 
                 //size_t len = strlen(decimal);
 
                 if(!max_remaining)
@@ -173,7 +121,7 @@ int printf(const char* restrict format, ...)
                     return -1;
                 }
 
-                char str = decimalToString(decimal);
+                char str = intToString(i);
 
                 if(!print(&str, sizeof(str)))
                 {
