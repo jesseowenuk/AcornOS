@@ -2,7 +2,7 @@
 ; print_string.asm
 ; 16-bit string printing
 ;
-
+bits 16
     ;------------------------------------------------------------------
     ; print_string
     ; Subroutine to print strings in 16-bit mode
