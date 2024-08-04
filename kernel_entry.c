@@ -48,6 +48,12 @@ void terminal_clear_screen()
     }
 }
 
+void terminal_cell_entry_at(char c, uint8_t palette, size_t x, size_t y)
+{
+    const size_t index = y * VGA_WIDTH + x;
+    vga_buffer[index] = vga_cell_entry(palette, c);
+}
+
 void terminal_init()
 {
     vga_buffer = (uint16_t*)0xB8000;
@@ -59,7 +65,7 @@ void kernel_entry(void)
 {  
     terminal_init();
 
-    vga_buffer[0] = vga_cell_entry(terminal_palette, 'H');
+    terminal_cell_entry_at('H', terminal_palette, 79, 24);
    
     for(;;);
 }
