@@ -24,20 +24,24 @@ enum vga_colour {
 };
 
 uint16_t* vga_buffer;
+uint8_t terminal_palette;
 
 uint8_t vga_colour_palette(enum vga_colour foreground_colour, enum vga_colour background_colour)
 {
     return foreground_colour | background_colour << 4;
 }
 
+uint16_t vga_cell_entry(uint8_t palette, unsigned char c)
+{
+    return (uint16_t) c | (uint16_t) palette << 8;
+}
+
 void kernel_entry(void)
 {  
     vga_buffer = (uint16_t*)0xB8000;
+    terminal_palette = vga_colour_palette(VGA_COLOUR_WHITE, VGA_COLOUR_LIGHT_BLUE);
 
-    uint8_t attribute = vga_colour_palette(VGA_COLOUR_WHITE, VGA_COLOUR_LIGHT_BLUE);
-    uint16_t c = 'H' | attribute << 8;
-
-    vga_buffer[0] = c;
+    vga_buffer[0] = vga_cell_entry(terminal_palette, 'H');
    
     for(;;);
 }
