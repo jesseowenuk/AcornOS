@@ -29,4 +29,4 @@ cat bootsector.bin stage2.bin kernel.kern > LBAOS_loader.bin
 
 # lets send it!
 echo "Sending it...."
-qemu-system-i386 -fda LBAOS_loader.bin -monitor stdio
+qemu-system-i386 LBAOS_loader.bin -monitor stdio

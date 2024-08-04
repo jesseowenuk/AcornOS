@@ -24,8 +24,8 @@
     mov ch, 0x00                    ; cylinder number (0 indexed) - 0
     mov cl, 0x02                    ; sector number (1 indexed so 2 is where we'll find our kernel)
     mov dh, 0x00                    ; head number (0 indexed) - 0
-    mov dl, 0                       ; drive nunber (0 & 1 are floppy disks, 0x80 = drive 0, 0x81 = drive 1)
-    mov bx, 0x500                  ; we can't write directly to EX register so set BX to 0x0500 here
+    mov dl, 0x80                    ; drive nunber (0 & 1 are floppy disks, 0x80 = drive 0, 0x81 = drive 1)
+    mov bx, 0x500                   ; we can't write directly to EX register so set BX to 0x0500 here
     mov es, bx                      ; then move this into the ES segment register (this is the segment in memory we are going to copy to)
     mov bx, 0                       ; now put the offset into the BX register - together this makes the pointer [ES:BX]
     int 0x13                        ; call interrupt 13 
@@ -62,7 +62,7 @@ system_end:
     ; Data
     ;------------------------------------------------------------------
 hello_message:
-    db 'Hello LBAOS! :)', 13, 10, 0
+    db 'Hello Acorn! :)', 13, 10, 0
 
 disk_read_error_message:
     db 'Disk read error...', 13, 10, 0

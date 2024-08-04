@@ -1,2 +1,2 @@
-# Let's Build an Operating System
+# AcornOS
 An open source operating system and boot loader from scratch.

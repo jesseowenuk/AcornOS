@@ -1,11 +1,19 @@
+#include <stddef.h>
 #include <stdint.h>
 
-void kernel_main(void)
+static const size_t VGA_WIDTH = 80;
+static const size_t VGA_HEIGHT = 25;
+
+uint16_t* vga_buffer;
+
+void kernel_entry(void)
 {  
-    uint16_t attrib = (1 << 4) | (15 & 0x0F);
-    volatile uint16_t* where;
-    where = (volatile uint16_t*)0xB8000;
-    *where = 'H' | (attrib << 8);
+    vga_buffer = (uint16_t*)0xB8000;
+
+    uint8_t attribute = 15 | 9 << 4;
+    uint16_t c = 'H' | attribute << 8;
+
+    vga_buffer[0] = c;
    
     for(;;);
 }

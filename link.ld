@@ -21,7 +21,8 @@ SECTIONS
 
     .bss :
     {
-        *(COMMON)
+        bss_start = .;
         *(.bss)
+        bss_end = .;
     }
 }
