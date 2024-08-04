@@ -48,11 +48,16 @@ void terminal_clear_screen()
     }
 }
 
-void kernel_entry(void)
-{  
+void terminal_init()
+{
     vga_buffer = (uint16_t*)0xB8000;
     terminal_palette = vga_colour_palette(VGA_COLOUR_WHITE, VGA_COLOUR_LIGHT_BLUE);
     terminal_clear_screen();
+}
+
+void kernel_entry(void)
+{  
+    terminal_init();
 
     vga_buffer[0] = vga_cell_entry(terminal_palette, 'H');
    
