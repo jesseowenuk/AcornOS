@@ -25,13 +25,16 @@ enum vga_colour {
 
 uint16_t* vga_buffer;
 
-
+uint8_t vga_colour_palette(enum vga_colour foreground_colour, enum vga_colour background_colour)
+{
+    return foreground_colour | background_colour << 4;
+}
 
 void kernel_entry(void)
 {  
     vga_buffer = (uint16_t*)0xB8000;
 
-    uint8_t attribute = VGA_COLOUR_WHITE | VGA_COLOUR_LIGHT_BLUE << 4;
+    uint8_t attribute = vga_colour_palette(VGA_COLOUR_WHITE, VGA_COLOUR_LIGHT_BLUE);
     uint16_t c = 'H' | attribute << 8;
 
     vga_buffer[0] = c;
