@@ -36,10 +36,23 @@ uint16_t vga_cell_entry(uint8_t palette, unsigned char c)
     return (uint16_t) c | (uint16_t) palette << 8;
 }
 
+void terminal_clear_screen()
+{
+    for(size_t x = 0; x < VGA_WIDTH; x++)
+    {
+        for(size_t y = 0; y < VGA_HEIGHT; y++)
+        {
+            const size_t index = y * VGA_WIDTH + x;
+            vga_buffer[index] = vga_cell_entry(terminal_palette, ' ');
+        }
+    }
+}
+
 void kernel_entry(void)
 {  
     vga_buffer = (uint16_t*)0xB8000;
     terminal_palette = vga_colour_palette(VGA_COLOUR_WHITE, VGA_COLOUR_LIGHT_BLUE);
+    terminal_clear_screen();
 
     vga_buffer[0] = vga_cell_entry(terminal_palette, 'H');
    
