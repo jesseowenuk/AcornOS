@@ -23,8 +23,13 @@ INTERNAL_LDFLAGS = \
 
 .PHONY: all clean
 
-C_FILES := boot/main.c
-OBJ := build/main.o
+C_FILES := \
+    boot/main.c \
+    drivers/vga_text_mode.c \
+
+OBJ := \
+    build/main.o \
+    build/vga_text_mode.o \
 
 all: build/aloader.bin
 
@@ -36,6 +41,9 @@ build/bootsect.bin: boot/bootsect/bootsect.asm
 	cd boot/bootsect && nasm bootsect.asm -fbin -o ../../build/bootsect.bin
 
 build/main.o: boot/main.c
+	$(CC) $(CFLAGS) $(INTERNAL_CFLAGS) -c $< -o $@
+
+build/vga_text_mode.o: drivers/vga_text_mode.c
 	$(CC) $(CFLAGS) $(INTERNAL_CFLAGS) -c $< -o $@
 
 clean:
