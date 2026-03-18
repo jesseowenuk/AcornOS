@@ -12,7 +12,7 @@ INTERNAL_CFLAGS = \
     -mno-sse \
     -mno-sse2 \
     -fno-stack-protector \
-    -I.
+    -I. \
 
 LDFLAGS =
 
@@ -47,4 +47,4 @@ build/vga_text_mode.o: drivers/vga_text_mode.c
 	$(CC) $(CFLAGS) $(INTERNAL_CFLAGS) -c $< -o $@
 
 clean:
-	rm -f $(OBJ) build/*
+	rm -f build/*
