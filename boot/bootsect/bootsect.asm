@@ -15,8 +15,6 @@ init_cs:
     mov sp, 0x7C00
     sti
 
-    mov byte [drive_number], dl
-
     mov si, message_loading
     call bios_print
 
@@ -27,17 +25,17 @@ call bios_print
 
 mov ax, 1
 mov ebx, 0x7e00
-mov cx, 7
+mov cx, 1
 call read_sectors
 
-jc err
+jc error
 
 mov si, message_done
 call bios_print
 
 jmp 0x7e00
 
-err:
+error:
     mov si, message_error
     call bios_print
 
@@ -61,3 +59,24 @@ drive_number db 0
 
 times 510-($-$$) db 0
 dw 0xaa55
+
+; ***************** Stage 2 Begins here *************************
+
+; A20 Enabling
+call enable_a20
+jc error
+
+; Load stage 3 by using the same read sectors routine as earlier
+
+mov ax, 2
+mov ebx, 0x8000
+mov cx, 6
+call read_sectors
+
+jc error
+
+jmp 0x8000
+
+%include 'enable_a20.asm'
+
+times 1024-($-$$) db 0
