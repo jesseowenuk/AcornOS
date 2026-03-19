@@ -66,6 +66,9 @@ dw 0xaa55
 call enable_a20
 jc error
 
+; Load the GDT
+lgdt [GDT]                  ; nice and easy :-)
+
 ; Load stage 3 by using the same read sectors routine as earlier
 
 mov ax, 2
@@ -78,5 +81,6 @@ jc error
 jmp 0x8000
 
 %include 'enable_a20.asm'
+%include 'gdt.asm'
 
 times 1024-($-$$) db 0
