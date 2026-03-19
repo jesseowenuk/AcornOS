@@ -55,12 +55,18 @@ message_done         db '   DONE', 13, 10, 0
 %include 'bios_print.asm'
 %include 'disk.asm'
 
-drive_number db 0
-
 times 510-($-$$) db 0
 dw 0xaa55
 
 ; ***************** Stage 2 Begins here *************************
+
+; Load stage 3 by using the same read sectors routine as earlier
+mov ax, 2
+mov ebx, 0x8000
+mov cx, 6
+call read_sectors
+
+jc error
 
 ; A20 Enabling
 call enable_a20
@@ -69,16 +75,28 @@ jc error
 ; Load the GDT
 lgdt [GDT]                  ; nice and easy :-)
 
-; Load stage 3 by using the same read sectors routine as earlier
+cli
 
-mov ax, 2
-mov ebx, 0x8000
-mov cx, 6
-call read_sectors
+; Switch on the protected mode enable bit in the CR0 register
+mov eax, cr0
+or eax, 00000001b
+mov cr0, eax
 
-jc error
+; And far jump to protected mode!
+jmp 0x18:.protected_mode
 
-jmp 0x8000
+bits 32
+.protected_mode:
+    mov ax, 0x20
+    mov ds, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
+    mov ss, ax
+
+    jmp 0x8000
+
+bits 16
 
 %include 'enable_a20.asm'
 %include 'gdt.asm'

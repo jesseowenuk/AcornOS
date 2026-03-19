@@ -2,7 +2,7 @@
 
 #include <drivers/vga_text_mode.h>
 
-#define VIDEO_BOTTOM (VGA_ROWS * VGA_COLUMNS)
+#define VIDEO_BOTTOM ((VGA_ROWS * 2) * VGA_COLUMNS)
 #define VGA_ROWS 80
 #define VGA_COLUMNS 25
 
@@ -11,24 +11,24 @@ static size_t cursor_location = 0;
 
 static uint8_t text_palette = 0x07;
 
-/*
+
 static int cursor_status = 1;
 static uint8_t cursor_palette = 0x70;
-*/
+
 static void clear_cursor(void)
 {
     video_memory[cursor_location + 1] = text_palette;
     return;
 }
-/*
+
 static void draw_cursor(void)
 {
     if(cursor_status)
     {
-        video_memory[cursor_location + 1] = text_palette;
+        video_memory[cursor_location + 1] = cursor_palette;
     }
     return;
-}*/
+}
 
 static void clear_screen(void)
 {
@@ -41,7 +41,7 @@ static void clear_screen(void)
     }
 
     cursor_location = 0;
-    //draw_cursor();
+    draw_cursor();
 
     return;
 }
