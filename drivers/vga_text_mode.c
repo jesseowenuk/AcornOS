@@ -2,9 +2,9 @@
 
 #include <drivers/vga_text_mode.h>
 
-#define VGA_BOTTOM ((VGA_ROWS * 2) * VGA_COLUMNS)
-#define VGA_ROWS 80
-#define VGA_COLUMNS 25
+#define VGA_BOTTOM ((VGA_ROWS * VGA_COLUMNS) - 1)
+#define VGA_COLUMNS (80 * 2)
+#define VGA_ROWS 25
 
 static char *video_memory = (char *)0xb8000;
 static size_t cursor_location = 0;
@@ -14,6 +14,8 @@ static uint8_t text_palette = 0x07;
 
 static int cursor_status = 1;
 static uint8_t cursor_palette = 0x70;
+
+static void write_character_to_screen(char character);
 
 static void clear_cursor(void)
 {
@@ -55,7 +57,7 @@ void init_vga_text_mode(void)
     return;
 }
 
-static void move_text_by_one_row()
+static void scroll()
 {
     // Move the text up by one line
     for(size_t i = 0; i <= VGA_BOTTOM - VGA_COLUMNS; i++)
@@ -66,17 +68,49 @@ static void move_text_by_one_row()
     // Now clear the last line
     for(size_t i = VGA_BOTTOM; i > VGA_BOTTOM - VGA_COLUMNS; i -= 2)
     {
-        video_memory[i] = ' ';
-        video_memory[i + 1] = text_palette;
+        video_memory[i] = text_palette;
+        video_memory[i - 1] = ' ';
     }
 
     return;
 }
 
-void write_character_to_screen(char character)
+static int get_cursor_position_y(void)
+{
+    return cursor_location / VGA_COLUMNS;
+}
+
+static void set_cursor_position(int x, int y)
+{
+    clear_cursor();
+    cursor_location = y * VGA_COLUMNS + x * 2;
+    draw_cursor();
+    return;
+}
+
+static void write_character_to_screen(char character)
 {
     switch(character)
     {
+        case 0x00:
+            break;
+
+        case 0x0A:
+        {
+            if(get_cursor_position_y() == (VGA_ROWS - 1))
+            {
+                clear_cursor();
+                scroll();
+                set_cursor_position(0, (VGA_ROWS -1));
+            }
+            else
+            {
+                set_cursor_position(0, (get_cursor_position_y() + 1));
+            }
+
+            break;
+        }
+
         default:
         {
             clear_cursor();
@@ -84,7 +118,7 @@ void write_character_to_screen(char character)
 
             if(cursor_location >= (VGA_BOTTOM - 1))
             {
-                move_text_by_one_row();
+                scroll();
                 cursor_location = VGA_BOTTOM - (VGA_COLUMNS- 1);
             }
             else
