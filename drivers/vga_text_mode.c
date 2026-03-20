@@ -46,7 +46,6 @@ static void clear_screen(void)
     return;
 }
 
-
 void init_vga_text_mode(void)
 {
     // Hide the cursor
@@ -54,4 +53,26 @@ void init_vga_text_mode(void)
     ouput_byte_via_port(0x20, 0x3d5);       // hide the cursor to stop it blinking
     clear_screen();                         // clear the screen
     return;
+}
+
+void write_character_to_screen(char character)
+{
+    switch(character)
+    {
+        default:
+        {
+            clear_cursor();
+            video_memory[cursor_location] = character;
+            cursor_location += 2;
+            draw_cursor();
+        }
+    }
+}
+
+void write_string_to_screen(const char *string_buffer, size_t string_length)
+{
+    for(size_t i = 0; i < string_length; i++)
+    {
+        write_character_to_screen(string_buffer[i]);
+    }
 }
