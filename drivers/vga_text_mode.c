@@ -2,7 +2,7 @@
 
 #include <drivers/vga_text_mode.h>
 
-#define VIDEO_BOTTOM ((VGA_ROWS * 2) * VGA_COLUMNS)
+#define VGA_BOTTOM ((VGA_ROWS * 2) * VGA_COLUMNS)
 #define VGA_ROWS 80
 #define VGA_COLUMNS 25
 
@@ -34,7 +34,7 @@ static void clear_screen(void)
 {
     clear_cursor();
 
-    for(size_t i = 0; i < VIDEO_BOTTOM; i += 2)
+    for(size_t i = 0; i < VGA_BOTTOM; i += 2)
     {
         video_memory[i] = ' ';
         video_memory[i + 1] = text_palette;
@@ -55,6 +55,24 @@ void init_vga_text_mode(void)
     return;
 }
 
+static void move_text_by_one_row()
+{
+    // Move the text up by one line
+    for(size_t i = 0; i <= VGA_BOTTOM - VGA_COLUMNS; i++)
+    {
+        video_memory[i] = video_memory[i + VGA_COLUMNS];
+    }
+
+    // Now clear the last line
+    for(size_t i = VGA_BOTTOM; i > VGA_BOTTOM - VGA_COLUMNS; i -= 2)
+    {
+        video_memory[i] = ' ';
+        video_memory[i + 1] = text_palette;
+    }
+
+    return;
+}
+
 void write_character_to_screen(char character)
 {
     switch(character)
@@ -63,7 +81,17 @@ void write_character_to_screen(char character)
         {
             clear_cursor();
             video_memory[cursor_location] = character;
-            cursor_location += 2;
+
+            if(cursor_location >= (VGA_BOTTOM - 1))
+            {
+                move_text_by_one_row();
+                cursor_location = VGA_BOTTOM - (VGA_COLUMNS- 1);
+            }
+            else
+            {
+                cursor_location += 2;
+            }
+
             draw_cursor();
         }
     }

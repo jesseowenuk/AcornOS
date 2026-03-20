@@ -11,6 +11,6 @@ void main(int boot_drive)
 {
     // TODO
     init_vga_text_mode();
-    write_string_to_screen("hello world!", 12);
+    write_string_to_screen("hello!", 6);
     for(;;);
 }
