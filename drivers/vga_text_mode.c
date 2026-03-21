@@ -131,8 +131,20 @@ static void write_character_to_screen(char character)
     }
 }
 
-void write_string_to_screen(const char *string_buffer, size_t string_length)
+size_t calculate_string_length(const char *string_buffer)
 {
+    size_t string_length = 0;
+    while(string_buffer[string_length] != 0x00)
+    {
+        string_length++;
+    }
+
+    return string_length;
+}
+
+void write_string_to_screen(const char *string_buffer)
+{
+    size_t string_length = calculate_string_length(string_buffer);
     for(size_t i = 0; i < string_length; i++)
     {
         write_character_to_screen(string_buffer[i]);

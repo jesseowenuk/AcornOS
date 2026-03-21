@@ -11,8 +11,9 @@ void main(int boot_drive)
 {
     // TODO
     init_vga_text_mode();
-    write_string_to_screen("hello!\nboo\nboo\nboo\nboo\n\n\n\n\nboo\n\n\nHELLO WEMBLEY!!!\n\n\n", 52);
-    write_string_to_screen("hello!\nboo\nboo\nboo\nboo\n\n\n\n\nboo\n\n\nHELLO WEMBLEY!!!\n\n\n", 52);
-    write_string_to_screen("here's another one\n", 19);
+    write_string_to_screen("hello\n");
+    write_string_to_screen("My name is Acorn\n");
+    write_string_to_screen("Testing another length of string without specifying length :-)");
+
     for(;;);
 }
