@@ -26,10 +26,12 @@ INTERNAL_LDFLAGS = \
 C_FILES := \
     boot/main.c \
     drivers/vga_text_mode.c \
+    lib/real_mode.c \
 
 OBJ := \
     build/main.o \
     build/vga_text_mode.o \
+    build/real_mode.o \
 
 all: build/aloader.bin
 
@@ -44,6 +46,9 @@ build/main.o: boot/main.c
 	$(CC) $(CFLAGS) $(INTERNAL_CFLAGS) -c $< -o $@
 
 build/vga_text_mode.o: drivers/vga_text_mode.c
+	$(CC) $(CFLAGS) $(INTERNAL_CFLAGS) -c $< -o $@
+
+build/real_mode.o: lib/real_mode.c
 	$(CC) $(CFLAGS) $(INTERNAL_CFLAGS) -c $< -o $@
 
 clean:
