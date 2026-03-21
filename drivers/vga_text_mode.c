@@ -92,10 +92,8 @@ static void write_character_to_screen(char character)
 {
     switch(character)
     {
-        case 0x00:
-            break;
-
         case 0x0A:
+        // New line
         {
             if(get_cursor_position_y() == (VGA_ROWS - 1))
             {
@@ -106,6 +104,20 @@ static void write_character_to_screen(char character)
             else
             {
                 set_cursor_position(0, (get_cursor_position_y() + 1));
+            }
+
+            break;
+        }
+
+        case 0x08:
+        // Backspace
+        {
+            if(cursor_location)
+            {
+                clear_cursor();
+                cursor_location -= 2;
+                video_memory[cursor_location] = ' ';
+                draw_cursor();
             }
 
             break;
