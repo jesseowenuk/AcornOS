@@ -57,7 +57,7 @@ void init_vga_text_mode(void)
     return;
 }
 
-static void scroll()
+static void scroll_down()
 {
     // Move the text up by one line
     for(size_t i = 0; i <= VGA_BOTTOM - VGA_COLUMNS; i++)
@@ -100,7 +100,7 @@ static void write_character_to_screen(char character)
             if(get_cursor_position_y() == (VGA_ROWS - 1))
             {
                 clear_cursor();
-                scroll();
+                scroll_down();
                 set_cursor_position(0, (VGA_ROWS -1));
             }
             else
@@ -118,7 +118,7 @@ static void write_character_to_screen(char character)
 
             if(cursor_location >= (VGA_BOTTOM - 1))
             {
-                scroll();
+                scroll_down();
                 cursor_location = VGA_BOTTOM - (VGA_COLUMNS- 1);
             }
             else
