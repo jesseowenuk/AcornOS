@@ -36,8 +36,8 @@ OBJ := \
 all: build/aloader.bin
 
 build/aloader.bin: build/bootsect.bin $(OBJ)
-	$(LD) $(LDFLAGS) $(INTERNAL_LDFLAGS) $(OBJ) -o build/stage2.bin
-	cat build/bootsect.bin build/stage2.bin > $@
+	$(LD) $(LDFLAGS) $(INTERNAL_LDFLAGS) $(OBJ) -o build/kernel.bin
+	cat build/bootsect.bin build/kernel.bin > $@
 
 build/bootsect.bin: boot/bootsect/bootsect.asm
 	cd boot/bootsect && nasm bootsect.asm -fbin -o ../../build/bootsect.bin
