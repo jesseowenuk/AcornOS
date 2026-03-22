@@ -19,12 +19,12 @@ LDFLAGS =
 INTERNAL_LDFLAGS = \
     -m elf_i386 \
     -nostdlib \
-    -Tboot/linker.ld
+    -Tlinker.ld
 
 .PHONY: all clean
 
 C_FILES := \
-    boot/main.c \
+    init/main.c \
     drivers/vga_text_mode.c \
     lib/real_mode.c \
 
@@ -42,7 +42,7 @@ build/aloader.bin: build/bootsect.bin $(OBJ)
 build/bootsect.bin: boot/bootsect/bootsect.asm
 	cd boot/bootsect && nasm bootsect.asm -fbin -o ../../build/bootsect.bin
 
-build/main.o: boot/main.c
+build/main.o: init/main.c
 	$(CC) $(CFLAGS) $(INTERNAL_CFLAGS) -c $< -o $@
 
 build/vga_text_mode.o: drivers/vga_text_mode.c
