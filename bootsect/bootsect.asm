@@ -118,37 +118,16 @@ initialise_protected_mode:
     call print_protected
     hlt
 
-;
-; print_protected
-;
-; routine to print messages in 32-bit
-;
-print_protected:
-    pusha
-    mov edx, 0x000B8000
 
-    .loop:
-        cmp al, byte[esi]
-        je .done
-
-        mov al, byte[esi]                       ; Put the next character in AL
-        mov ah, 0x0F                            ; And the style in AH
-        mov word[edx], ax                       ; And print the character out
-
-        ; Increment the registers
-        add esi, 1
-        add edx, 2
-
-        jmp .loop
-
-    .done:
-        popa
-        ret
 
     hlt
 
 ; Stage 2 Data ************************************************
 gdt_loaded_message db 13, 10, 'Loading GDT...', 0
 protected_mode_switch_message db 13, 10, 'Enabling Protected Mode...', 0
+
+; Stage 2 Includes *********************************************
+
+%include 'print_protected.asm'
 
 times 1024-($-$$) db 0
