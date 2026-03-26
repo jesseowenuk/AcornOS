@@ -9,6 +9,12 @@ org 0x7c00
 bits 16
 
 start:
+    ; Set up the stack pointer and base pointer
+    ; The stack moves downwards so it's fine to 
+    ; put it at the start of our bootloader!
+    mov bp, 0x7c00
+    mov sp, bp
+
     mov si, loading_message
     call print_string
 
