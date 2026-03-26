@@ -77,7 +77,7 @@ load_sector:
 ; Data ***************************************************************************
 ;
 loading_message db 13, 10, 'Loading Sectors...', 0
-disk_error_message db '[ERROR]'
+disk_error_message db '[ERROR]', 0
 done_message db '[DONE]', 0
 
 ;
