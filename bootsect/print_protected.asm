@@ -11,7 +11,7 @@ print_protected:
     mov edx, 0x000B8000
 
     .loop:
-        cmp al, byte[esi]
+        cmp byte[esi], 0
         je .done
 
         mov al, byte[esi]                       ; Put the next character in AL
