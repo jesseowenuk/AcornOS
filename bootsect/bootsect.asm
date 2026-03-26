@@ -78,6 +78,18 @@ stage2:
     ; disable the interrupts
     cli
 
+    ; that was easy, next load the GDT
+    mov si, gdt_loaded_message
+    call print_string
+
+    lgdt [gdt_descriptor32]
+
+    mov si, done_message
+    call print_string
+
     hlt
+
+; Stage 2 Data ************************************************
+gdt_loaded_message db 13, 10, 'Loading GDT...', 0
 
 times 1024-($-$$) db 0
