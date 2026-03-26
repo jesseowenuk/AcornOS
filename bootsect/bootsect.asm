@@ -31,7 +31,7 @@ start:
     jmp 0x7e00
 
     .disk_error:
-        mov si, disk_error_message
+        mov si, error_message
         call print_string
         jmp end
 
@@ -44,14 +44,18 @@ end:
 %include 'print_string.asm'
 %include 'disk_load.asm'
 %include 'gdt.asm'
+%include 'a20.asm'
 
 ;
 ; Data ***************************************************************************
 ;
 loading_message db 13, 10, 'Loading Sectors...', 0
 stage2_message db 13,10, 'Jumping to stage 2...', 0
-disk_error_message db '[ERROR]', 0
+a20_check_message db 13, 10, 'Checking A20 line...', 0
+error_message db '[ERROR]', 0
 done_message db '[DONE]', 0
+enabled_message db '[ENABLED]', 0
+not_enabled_message db '[NOT ENABLED]', 0
 
 ;
 ; Padding & Magic Number *********************************************************
@@ -69,6 +73,7 @@ stage2:
     ; We start moving into protected mode here!!!!
     ; We need to:
     ;   Disable interrupts
+    ;   Enabled A20 line
     ;   Load the GDT (found in gdt.asm)
     ;   Enable protected mode via the cr0 register
     ;   Far jump into the 32-bit code segment to flush the pipeline and
@@ -78,6 +83,27 @@ stage2:
     ; disable the interrupts
     cli
 
+    ; Enable A20 line
+    ;   1) Check if aleady enabled
+    mov si, a20_check_message
+    call print_string
+
+    call check_a20_line
+    cmp ax, 0
+    je enable_a20
+    jmp .a20_done
+
+    .a20_done:
+        mov si, enabled_message
+        call print_string
+        jmp load_gdt
+
+enable_a20:
+        mov si, not_enabled_message
+        call print_string
+        hlt
+
+load_gdt:
     ; that was easy, next load the GDT
     mov si, gdt_loaded_message
     call print_string
@@ -116,10 +142,6 @@ initialise_protected_mode:
 
     mov esi, done_message
     call print_protected
-    hlt
-
-
-
     hlt
 
 ; Stage 2 Data ************************************************
