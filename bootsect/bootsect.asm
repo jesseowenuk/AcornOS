@@ -51,11 +51,9 @@ end:
 ;
 loading_message db 13, 10, 'Loading Sectors...', 0
 stage2_message db 13,10, 'Jumping to stage 2...', 0
-a20_check_message db 13, 10, 'Checking A20 line...', 0
+a20_enable_message db 13, 10, 'Enabling A20 line...', 0
 error_message db '[ERROR]', 0
 done_message db '[DONE]', 0
-enabled_message db '[ENABLED]', 0
-not_enabled_message db '[NOT ENABLED]', 0
 
 ;
 ; Padding & Magic Number *********************************************************
@@ -84,24 +82,20 @@ stage2:
     cli
 
     ; Enable A20 line
-    ;   1) Check if aleady enabled
-    mov si, a20_check_message
+    mov si, a20_enable_message
+    call print_string  
+    call enable_a20
+
+    jc .a20_error
+    mov si, done_message
     call print_string
+    jmp load_gdt
 
-    call check_a20_line
-    cmp ax, 0
-    je enable_a20
-    jmp .a20_done
-
-    .a20_done:
-        mov si, enabled_message
-        call print_string
-        jmp load_gdt
-
-enable_a20:
-        mov si, not_enabled_message
+    .a20_error:
+        mov si, error_message
         call print_string
         hlt
+
 
 load_gdt:
     ; that was easy, next load the GDT
