@@ -11,6 +11,8 @@
 ;   int 0x10
 ;
 
+org 0x7c00
+
 start:
     mov si, message
     call print_string
