@@ -18,6 +18,10 @@ start:
     mov si, done_message
     call print_string
 
+    .disk_error:
+        mov si, disk_error_message
+        call print_string
+
 end:
     hlt
 
@@ -70,7 +74,8 @@ load_sector:
 ;
 ; Data ***************************************************************************
 ;
-loading_message db 13, 10, 'Loading OS...', 0
+loading_message db 13, 10, 'Loading Sectors...', 0
+disk_error_message db '[ERROR]'
 done_message db '[DONE]', 0
 
 ;
