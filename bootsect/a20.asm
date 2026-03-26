@@ -100,39 +100,39 @@ enable_a20_via_keyboard_controller:
 
     call .wait_io1
     mov al, 0xad
-    out 0x64, al
+    out 0x64, al                            ; disable the keyboard
 
     call .wait_io1
     mov al, 0xd0
-    out 0x64, al
+    out 0x64, al                            ; read controller output port
 
     call .wait_io2
-    in al, 0x60
+    in al, 0x60                             ; save the response byte
     push eax
 
     call .wait_io1
     mov al, 0xd1
-    out 0x64, al
+    out 0x64, al                            ; write the next byte onto the controller output port
 
     call .wait_io1
     pop eax
-    or al, 2
-    out 0x60, al
+    or al, 2                                ; set controller output bit for A20 on
+    out 0x60, al                            ; activate A20
 
     call .wait_io1
     mov al, 0xae
-    out 0x64, al
+    out 0x64, al                            ; reactivate the keyboard
 
-    sti
+    sti                                     ; reactivate the interrupts
     ret
 
-    .wait_io1:
+    .wait_io1:                              ; wait until the input buffer is clear
         in al, 0x64
         test al, 2
         jnz .wait_io1
         ret
 
-    .wait_io2:
+    .wait_io2:                              ; wait until response byte has arrived
         in al, 0x64
         test al, 1
         jz .wait_io2
