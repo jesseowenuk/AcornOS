@@ -33,6 +33,7 @@ end:
 ;
 %include 'print_string.asm'
 %include 'disk_load.asm'
+%include 'gdt.asm'
 
 ;
 ; Data ***************************************************************************
