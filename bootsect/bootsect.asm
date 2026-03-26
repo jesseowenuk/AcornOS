@@ -12,6 +12,7 @@ start:
     mov si, loading_message
     call print_string
 
+    mov bx, 0x7e00
     call load_sector
     jc .disk_error
 
@@ -21,6 +22,7 @@ start:
     .disk_error:
         mov si, disk_error_message
         call print_string
+        jmp end
 
 end:
     hlt
