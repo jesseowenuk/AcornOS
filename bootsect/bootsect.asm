@@ -66,6 +66,18 @@ stage2:
     mov si, done_message
     call print_string
 
+    ; We start moving into protected mode here!!!!
+    ; We need to:
+    ;   Disable interrupts
+    ;   Load the GDT (found in gdt.asm)
+    ;   Enable protected mode via the cr0 register
+    ;   Far jump into the 32-bit code segment to flush the pipeline and
+    ;   enter 32-bit protected mode!
+    ; Here we go.....
+
+    ; disable the interrupts
+    cli
+
     hlt
 
 times 1024-($-$$) db 0
