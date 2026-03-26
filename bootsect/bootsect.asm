@@ -1,9 +1,8 @@
 ;
 ; bootsect.asm
 ;
-; A bootsector which displays the word 
-; 'AcornOS' to the screen one character
-; at a time.
+; A bootsector which displays a welcome mesage
+; using our new print_string routine.
 ;
 ; BIOS Teletype Info:
 ;   AH = 0x0e
@@ -22,28 +21,17 @@ end:
     hlt
 
 ;
-; print_string
+; Real Mode Includes *************************************************************
 ;
-; Prints a C style null terminating string
-; IN:
-;   SI = points to the first character of the string
+%include 'print_string.asm'
+
 ;
-print_string:
-    push ax
-    mov ah, 0x0e
-
-    .loop:
-        lodsb
-        cmp al, 0
-        je .done
-        int 0x10
-        jmp .loop
-
-    .done:
-        pop ax
-        ret
-
+; Data ***************************************************************************
+;
 message db 13, 10, 'Hello from Acorn Boot!', 13, 10, 0
 
+;
+; Padding & Magic Number *********************************************************
+;
 times 510 - ($-$$) db 0
 dw 0xaa55
