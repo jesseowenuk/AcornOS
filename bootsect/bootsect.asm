@@ -18,7 +18,11 @@ start:
 
     mov si, done_message
     call print_string
-    jmp end
+
+    mov si, stage2_message
+    call print_string
+
+    jmp 0x7e00
 
     .disk_error:
         mov si, disk_error_message
@@ -39,6 +43,7 @@ end:
 ; Data ***************************************************************************
 ;
 loading_message db 13, 10, 'Loading Sectors...', 0
+stage2_message db 13,10, 'Jumping to stage 2...', 0
 disk_error_message db '[ERROR]', 0
 done_message db '[DONE]', 0
 
@@ -52,5 +57,9 @@ dw 0xaa55
 ; Stage 2 ************************************************************************
 ;
 stage2:
+    mov si, done_message
+    call print_string
+
+    hlt
 
 times 1024-($-$$) db 0
