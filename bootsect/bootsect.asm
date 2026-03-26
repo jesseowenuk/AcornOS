@@ -12,39 +12,35 @@
 ;
 
 start:
-    ; Enter BIOS teletype mode
-    mov ah, 0x0e
-
-    ; Print 'A'
-    mov al, 'A'
-    int 0x10
-
-    ; Print 'c'
-    mov al, 'c'
-    int 0x10
-
-    ; Print 'o'
-    mov al, 'o'
-    int 0x10
-
-    ; Print 'r'
-    mov al, 'r'
-    int 0x10
-
-    ; Print 'n'
-    mov al, 'n'
-    int 0x10
-
-    ; Print 'O'
-    mov al, 'O'
-    int 0x10
-
-    ; Print 'S'
-    mov al, 'S'
-    int 0x10
+    mov si, message
+    call print_string
 
 end:
     hlt
+
+;
+; print_string
+;
+; Prints a C style null terminating string
+; IN:
+;   SI = points to the first character of the string
+;
+print_string:
+    push ax
+    mov ah, 0x0e
+
+    .loop:
+        lodsb
+        cmp al, 0
+        je .done
+        int 0x10
+        jmp .loop
+
+    .done:
+        pop ax
+        ret
+
+message db 13, 10, 'Hello from Acorn Boot!', 13, 10, 0
 
 times 510 - ($-$$) db 0
 dw 0xaa55
