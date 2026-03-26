@@ -96,6 +96,55 @@ stage2:
     or eax, 0x00000001
     mov cr0, eax
 
+    ; Far jump into protected mode
+    jmp code_segment:initialise_protected_mode
+
+bits 32
+initialise_protected_mode:
+    ; We've arrived in 32-bit protected mode - now lets set
+    ; things up properly
+    mov ax, data_segment
+    mov ds, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
+    mov ss, ax
+
+    ; And lets reset the stack to a new location
+    mov ebp, 0x90000
+    mov esp, ebp
+
+    mov esi, done_message
+    call print_protected
+    hlt
+
+;
+; print_protected
+;
+; routine to print messages in 32-bit
+;
+print_protected:
+    pusha
+    mov edx, 0x000B8000
+
+    .loop:
+        cmp al, byte[esi]
+        je .done
+
+        mov al, byte[esi]                       ; Put the next character in AL
+        mov ah, 0x0F                            ; And the style in AH
+        mov word[edx], ax                       ; And print the character out
+
+        ; Increment the registers
+        add esi, 1
+        add edx, 2
+
+        jmp .loop
+
+    .done:
+        popa
+        ret
+
     hlt
 
 ; Stage 2 Data ************************************************
