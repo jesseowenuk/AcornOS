@@ -1,15 +1,16 @@
 ;
 ; bootsect.asm
 ;
-; Creates a bootable bootsector by writing
-; 510 0 bytes and adding the magic number
-; 0xaa55 to bytes 511 and 512 so BIOS
-; knows we are bootable.
-;
-; Halts the sytem with the hlt instruction
+; A bootsector which displays the letter 
+; 'A' for Acorn :-)
 ;
 
 start:
+    mov ah, 0x0e
+    mov al, 'A'
+    int 0x10
+
+end:
     hlt
 
 times 510 - ($-$$) db 0
