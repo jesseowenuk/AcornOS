@@ -18,6 +18,7 @@ start:
 
     mov si, done_message
     call print_string
+    jmp end
 
     .disk_error:
         mov si, disk_error_message
