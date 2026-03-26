@@ -87,9 +87,19 @@ stage2:
     mov si, done_message
     call print_string
 
+    ; Enable protected mode via the protection
+    ; enable bit in the cr0 register
+    mov si, protected_mode_switch_message
+    call print_string
+
+    mov eax, cr0
+    or eax, 0x00000001
+    mov cr0, eax
+
     hlt
 
 ; Stage 2 Data ************************************************
 gdt_loaded_message db 13, 10, 'Loading GDT...', 0
+protected_mode_switch_message db 13, 10, 'Enabling Protected Mode...', 0
 
 times 1024-($-$$) db 0
