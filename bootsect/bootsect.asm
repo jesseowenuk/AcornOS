@@ -57,7 +57,7 @@ load_sector:
     mov ah, 0x02
     mov al, 1
     mov ch, 0
-    mov cl, 0
+    mov cl, 2
     mov dh, 0
     int 0x13
 
