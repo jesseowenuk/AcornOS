@@ -134,16 +134,23 @@ initialise_protected_mode:
     mov ebp, 0x90000
     mov esp, ebp
 
-    mov esi, done_message
+    call clear_protected
+    mov esi, protected_done_message
     call print_protected
     hlt
 
 ; Stage 2 Data ************************************************
 gdt_loaded_message db 13, 10, 'Loading GDT...', 0
 protected_mode_switch_message db 13, 10, 'Enabling Protected Mode...', 0
+protected_done_message db 'Enabling Protected Mode...[DONE]', 0
+
+vga_start equ 0x000B8000
+vga_memory equ 80 * 25 * 2      ; VGA video memory is 80 columns by 25 rows (we have to times columns by 2 to allow for the character and attribute)
+vga_attribute equ 0x07          ; the style we're going to use - 0x07 is the default
 
 ; Stage 2 Includes *********************************************
 
 %include 'print_protected.asm'
+%include 'clear_protected.asm'
 
 times 1024-($-$$) db 0
