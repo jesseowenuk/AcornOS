@@ -162,8 +162,9 @@ initialise_protected_mode:
     ; Load the 64-bit GDT
     lgdt [gdt_descriptor64]
 
-    
-    hlt
+    ; And... far jump into 64-bit
+    ; A bit like with the 32-bit this is to clear CS again
+    jmp code_segment_64:initialise_long_mode
 
 ; Stage 2 Data ************************************************
 gdt_loaded_message db 13, 10, 'Loading GDT...', 0
@@ -183,5 +184,24 @@ vga_attribute equ 0x07          ; the style we're going to use - 0x07 is the def
 %include 'protected_mode/cpuid.asm'
 %include 'protected_mode/init_page_tables.asm'
 %include 'protected_mode/gdt.asm'
+
+; Long mode begins here ****************************************
+bits 64
+initialise_long_mode:
+    cli
+
+    mov ax, data_segment_64
+    mov ds, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
+    mov ss, ax
+
+    call clear_long
+
+    hlt
+
+; Long Mode Includes *********************************************
+%include 'long_mode/clear_long.asm'
 
 times 2048-($-$$) db 0
