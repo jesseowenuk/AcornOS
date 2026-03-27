@@ -20,6 +20,7 @@
 ; 
 
 init_page_tables:
+    pushad
     mov edi, 0x1000         ; Set the base address for rep stosd. Our
                             ; page table goes from 0x1000 -> 0x4FFF, so 
                             ; we want to start from 0x1000
