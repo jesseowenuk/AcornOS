@@ -202,7 +202,7 @@ initialise_long_mode:
     mov rsi, long_mode_message
     call print_long
 
-    call 0x8200
+    jmp 0x8400
 
     hlt
 

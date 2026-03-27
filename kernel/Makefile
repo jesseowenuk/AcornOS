@@ -8,7 +8,7 @@ ASM_SRC = $(shell find . -type f -name "*.asm")
 OBJ = ${ASM_SRC:.asm=.o} ${C_SRC:.c=.o}
 
 C_FLAGS = -c -ffreestanding
-LD_FLAGS = -Ttext 0x8200
+LD_FLAGS = -Ttext 0x8400
 LD_FLAGS_BIN = $(LD_FLAGS) --oformat binary
 AS_FLAGS = -f elf64
 
