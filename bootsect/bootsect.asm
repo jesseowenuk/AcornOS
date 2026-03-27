@@ -41,10 +41,10 @@ end:
 ;
 ; Real Mode Includes *************************************************************
 ;
-%include 'print_string.asm'
-%include 'disk_load.asm'
-%include 'gdt.asm'
-%include 'a20.asm'
+%include 'real_mode/print_string.asm'
+%include 'real_mode/disk_load.asm'
+%include 'real_mode/gdt.asm'
+%include 'real_mode/a20.asm'
 
 ;
 ; Data ***************************************************************************
@@ -139,10 +139,14 @@ initialise_protected_mode:
     call print_protected
 
     call is_long_mode_available
+    call clear_protected
     mov esi, long_mode_supported_message
     call print_protected
 
     call init_page_tables
+    call clear_protected
+    mov esi, page_tables_message
+    call print_protected
     hlt
 
 ; Stage 2 Data ************************************************
@@ -158,9 +162,9 @@ vga_attribute equ 0x07          ; the style we're going to use - 0x07 is the def
 
 ; Stage 2 Includes *********************************************
 
-%include 'print_protected.asm'
-%include 'clear_protected.asm'
-%include 'cpuid.asm'
-%include 'init_page_tables.asm'
+%include 'protected_mode/print_protected.asm'
+%include 'protected_mode/clear_protected.asm'
+%include 'protected_mode/cpuid.asm'
+%include 'protected_mode/init_page_tables.asm'
 
 times 2048-($-$$) db 0
