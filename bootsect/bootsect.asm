@@ -141,6 +141,8 @@ initialise_protected_mode:
     call is_long_mode_available
     mov esi, long_mode_supported_message
     call print_protected
+
+    call init_page_tables
     hlt
 
 ; Stage 2 Data ************************************************
@@ -148,6 +150,7 @@ gdt_loaded_message db 13, 10, 'Loading GDT...', 0
 protected_mode_switch_message db 13, 10, 'Enabling Protected Mode...', 0
 protected_done_message db 'Enabling Protected Mode...[DONE]', 0
 long_mode_supported_message db 'Checking for long mode support [SUPPORTED]', 0
+page_tables_message db 'Creating Page Tables [DONE]', 0
 
 vga_start equ 0x000B8000
 vga_memory equ 80 * 25 * 2      ; VGA video memory is 80 columns by 25 rows (we have to times columns by 2 to allow for the character and attribute)
@@ -158,5 +161,6 @@ vga_attribute equ 0x07          ; the style we're going to use - 0x07 is the def
 %include 'print_protected.asm'
 %include 'clear_protected.asm'
 %include 'cpuid.asm'
+%include 'init_page_tables.asm'
 
-times 1024-($-$$) db 0
+times 2048-($-$$) db 0
