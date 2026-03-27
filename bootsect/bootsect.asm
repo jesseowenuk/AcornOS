@@ -140,6 +140,7 @@ initialise_protected_mode:
 
     call is_long_mode_available
     mov esi, long_mode_supported_message
+    call print_protected
     hlt
 
 ; Stage 2 Data ************************************************
