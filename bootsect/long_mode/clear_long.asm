@@ -9,6 +9,8 @@ clear_long:
     push rax
     push rcx
 
+    mov rdi, 0x07
+
     shl rdi, 8
     mov rax, rdi
 

@@ -199,9 +199,16 @@ initialise_long_mode:
 
     call clear_long
 
+    mov rsi, long_mode_message
+    call print_long
+
     hlt
+
+; Long Mode Data *************************************************
+long_mode_message db 'Entering 64-bit long mode [DONE]', 0
 
 ; Long Mode Includes *********************************************
 %include 'long_mode/clear_long.asm'
+%include 'long_mode/print_long.asm'
 
 times 2048-($-$$) db 0
