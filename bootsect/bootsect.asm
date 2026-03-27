@@ -147,6 +147,22 @@ initialise_protected_mode:
     call clear_protected
     mov esi, page_tables_message
     call print_protected
+
+    ; switch to 64-bit mode
+    mov ecx, 0xC0000080
+    rdmsr
+    or eax, 1 << 8
+    wrmsr
+
+    ; Actually enable the paging now
+    mov eax, cr0
+    or eax, 1 << 31
+    mov cr0, eax
+
+    ; Load the 64-bit GDT
+    lgdt [gdt_descriptor64]
+
+    
     hlt
 
 ; Stage 2 Data ************************************************
@@ -166,5 +182,6 @@ vga_attribute equ 0x07          ; the style we're going to use - 0x07 is the def
 %include 'protected_mode/clear_protected.asm'
 %include 'protected_mode/cpuid.asm'
 %include 'protected_mode/init_page_tables.asm'
+%include 'protected_mode/gdt.asm'
 
 times 2048-($-$$) db 0
