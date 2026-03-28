@@ -10,4 +10,4 @@ make_result=$?
 
 echo Make Result: $make_result
 
-cat bootsect/bootsect kernel/kernel > os.img
+cat bootsect/bootsect kernel/kernel.kn > os.img

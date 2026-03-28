@@ -8,13 +8,13 @@ ASM_SRC = $(shell find . -type f -name "*.asm")
 OBJ = ${ASM_SRC:.asm=.o} ${C_SRC:.c=.o}
 
 C_FLAGS = -c -ffreestanding
-LD_FLAGS = -Ttext 0x8400
+LD_FLAGS = -Ttext 0x8400 -nostdlib
 LD_FLAGS_BIN = $(LD_FLAGS) --oformat binary
 AS_FLAGS = -f elf64
 
-all: kernel kernel.elf
+all: kernel.kn kernel.elf
 
-kernel: ${OBJ}
+kernel.kn: ${OBJ}
 	${LD} -o $@ ${LD_FLAGS_BIN} $^
 
 kernel.elf: ${OBJ}
@@ -27,4 +27,4 @@ kernel.elf: ${OBJ}
 	${ASM} $< ${AS_FLAGS} -o $@
 
 clean:
-	rm -f kernel kernel.elf *.o **/*.o
+	rm -f kernel.kn kernel.elf *.o **/*.o
