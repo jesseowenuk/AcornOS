@@ -6,7 +6,6 @@
 
 bits 64
 extern main
-extern _init
 
 section .bss
 align 16
@@ -19,8 +18,6 @@ global _start
 
 _start:
     mov rsp, stack_top
-
-    call _init
 
     call main
     hlt
