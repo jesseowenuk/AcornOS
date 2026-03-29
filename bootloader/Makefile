@@ -28,11 +28,15 @@ OBJ := $(C_FILES:.c=.o)
 
 all: bootloader.bin
 
-bootloader.bin: $(OBJ)
-	$(LD) $(LD_FLAGS) $(INTERNAL_LD_FLAGS) $(OBJ) -o $@
+bootloader.bin: bootsector/bootsector.bin $(OBJ)
+	$(LD) $(LD_FLAGS) $(INTERNAL_LD_FLAGS) $(OBJ) -o stage2.bin
+	cat bootsector/bootsector.bin stage2.bin > $@
+
+bootsector/bootsector.bin: bootsector/bootsector.asm
+	cd bootsector && nasm bootsector.asm -fbin -o bootsector.bin
 
 %.o: %.c
 	$(CC) $(C_FLAGS) $(INTERNAL_C_FLAGS) -c $< -o $@
 
 clean:
-	rm -f $(OBJ)
+	rm -f $(OBJ) bootloader.bin bootsector/bootsector.bin
