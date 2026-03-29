@@ -21,6 +21,10 @@ initialise_cs:
     ; save the drive number for later
     mov byte [drive_number], dl
 
+    ; print out a loading message
+    mov si, loading_message
+    call simple_print
+
 halt:
     hlt
     jmp halt
@@ -28,7 +32,17 @@ halt:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; DATA
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+loading_message         db 13, 10, 'AcornOS Bootloader', 13, 10, 10, 0
+
 drive_number db 0
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; INCLUDES
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+%include 'simple_print.asm'
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; PADDING & MAGIC NUMBER
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 times 510-($-$$) db 0
 dw 0xaa55
