@@ -1,4 +1,4 @@
-CC = x86_64-elf-cc
+CC = x86_64-elf-gcc
 LD = x86_64-elf-ld
 
 C_FLAGS = -O2 -pipe -Wall -Wextra
@@ -7,9 +7,8 @@ INTERNAL_C_FLAGS = \
 	-m16 \
 	-ffreestanding \
 	-nostdlib \
-	-masm-intel \
+	-masm=intel \
 	-fno-pic \
-	-mno-pic \
 	-mno-sse \
 	-mno-sse2 \
 	-fno-stack-protector \
