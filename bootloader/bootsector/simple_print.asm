@@ -16,7 +16,7 @@ simple_print:
     ; int 0x10, AH=0x0E, AL=character -> prints the character in AL
     mov ah, 0x0E
 
-.loop
+.loop:
     ; load the next character pointed at by SI into AL
     lodsb
 

@@ -25,6 +25,31 @@ initialise_cs:
     mov si, loading_message
     call simple_print
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; LOAD STAGE 2
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+    mov si, stage2_message
+    call simple_print
+
+    ; read 7 sectors (our stage 2) and put them in memory at 0x7e00 
+    ; (right after our bootloader code in memory)
+    mov ax, 1
+    mov ebx, 0x7e00
+    mov cx, 7
+    call read_sectors
+
+    jc error
+
+    mov si, done_message
+    call simple_print
+
+    jmp 0x7e00
+
+error:
+    mov si, error_message
+    call simple_print
+
 halt:
     hlt
     jmp halt
@@ -33,6 +58,9 @@ halt:
 ; DATA
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 loading_message         db 13, 10, 'AcornOS Bootloader', 13, 10, 10, 0
+stage2_message          db 'Stage 1: Loading Stage 2', 0
+done_message            db '  [DONE]', 13, 10, 0
+error_message           db 13, 10, 'Error, AcornOS boot halted.', 0
 
 drive_number db 0
 
@@ -40,6 +68,7 @@ drive_number db 0
 ; INCLUDES
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 %include 'simple_print.asm'
+%include 'disk.asm'
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; PADDING & MAGIC NUMBER
