@@ -4,7 +4,7 @@ LD = x86_64-elf-ld
 C_FLAGS = -O2 -pipe -Wall -Wextra
 
 INTERNAL_C_FLAGS = \
-	-m16 \
+	-m32 \
 	-ffreestanding \
 	-nostdlib \
 	-masm=intel \

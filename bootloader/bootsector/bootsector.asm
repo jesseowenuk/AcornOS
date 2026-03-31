@@ -36,7 +36,7 @@ initialise_cs:
     ; (right after our bootloader code in memory)
     mov ax, 1
     mov ebx, 0x7e00
-    mov cx, 7
+    mov cx, 1
     call read_sectors
 
     jc error
@@ -65,7 +65,7 @@ error_message           db 13, 10, 'Error, AcornOS boot halted.', 0
 drive_number db 0
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; INCLUDES
+; BOOTSECTOR INCLUDES
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 %include 'simple_print.asm'
 %include 'disk.asm'
@@ -75,3 +75,26 @@ drive_number db 0
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 times 510-($-$$) db 0
 dw 0xaa55
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; STAGE 2
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; Load stage 3
+    mov ax, 2
+    mov ebx, 0x8000
+    mov cx, 6
+    call read_sectors
+
+    jc error
+
+; Enable A20
+    call enable_a20 
+    jc error
+
+    hlt
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; STAGE 2 INCLUDES
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+%include 'a20.asm'
