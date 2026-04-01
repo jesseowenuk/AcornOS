@@ -92,9 +92,13 @@ dw 0xaa55
     call enable_a20 
     jc error
 
+; Load the GDT
+    lgdt [gdt]
+
     hlt
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; STAGE 2 INCLUDES
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 %include 'a20.asm'
+%include 'gdt.asm'
