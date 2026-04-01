@@ -25,7 +25,7 @@ gdt:
     dw 0xFFFF                   ; limit
     dw 0x0000                   ; base (low 16 bits)
     db 0x00                     ; base (mid 8 bits)
-    db 10011010b                ; access
+    db 10010010b                ; access
     db 10001111b                ; granularity
     db 0x00                     ; base (high 8 bits)  
 

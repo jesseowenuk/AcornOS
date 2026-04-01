@@ -95,10 +95,42 @@ dw 0xaa55
 ; Load the GDT
     lgdt [gdt]
 
-    hlt
+; Disable interrupts
+    cli
+
+; Move into protected mode and jump to 32-bit code!
+    mov eax, cr0
+    or eax, 00000001b
+    mov cr0, eax
+
+   jmp 0x08:protected_mode
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; STAGE 2 INCLUDES
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 %include 'a20.asm'
 %include 'gdt.asm'
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; PROTECTED MODE
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+bits 32
+protected_mode:
+    ; load the segments with the protected mode code segment
+    mov ax, 0x10
+    mov ds, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
+    mov ss, ax
+
+    hlt
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; FILE PADDING
+; ************
+; This ensures we're padded enough so that the binary from
+; the C file is aligned to the start of the right sector.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+times 1024-($-$$) db 0

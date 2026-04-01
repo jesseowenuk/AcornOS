@@ -39,4 +39,4 @@ bootsector/bootsector.bin: bootsector/bootsector.asm
 	$(CC) $(C_FLAGS) $(INTERNAL_C_FLAGS) -c $< -o $@
 
 clean:
-	rm -f $(OBJ) bootloader.bin bootsector/bootsector.bin
+	rm -f $(OBJ) bootloader.bin bootsector/bootsector.bin stage2.bin
