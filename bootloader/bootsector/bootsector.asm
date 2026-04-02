@@ -18,9 +18,6 @@ initialise_cs:
     mov sp, 0x7C00
     sti
 
-    ; save the drive number for later
-    mov byte [drive_number], dl
-
     ; print out a loading message
     mov si, loading_message
     call simple_print
@@ -62,8 +59,6 @@ stage2_message          db 'Stage 1: Loading Stage 2', 0
 done_message            db '  [DONE]', 13, 10, 0
 error_message           db 13, 10, 'Error, AcornOS boot halted.', 0
 
-drive_number db 0
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; BOOTSECTOR INCLUDES
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -103,7 +98,7 @@ dw 0xaa55
     or eax, 00000001b
     mov cr0, eax
 
-   jmp 0x08:protected_mode
+    jmp 0x18:protected_mode
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; STAGE 2 INCLUDES
@@ -118,14 +113,14 @@ dw 0xaa55
 bits 32
 protected_mode:
     ; load the segments with the protected mode code segment
-    mov ax, 0x10
+    mov ax, 0x20
     mov ds, ax
     mov es, ax
     mov fs, ax
     mov gs, ax
     mov ss, ax
 
-    hlt
+    jmp 0x8000
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; FILE PADDING

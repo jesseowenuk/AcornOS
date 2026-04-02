@@ -1,38 +1,19 @@
 asm (
-    ".section .early_boot\n\t"
-    "cli\n\t"
-    "jmp 0x0:1f\n\t"
-    "1:\n\t"
-    "xor ax, ax\n\t"
-    "mov ds, ax\n\t"
-    "mov es, ax\n\t"
-    "mov fs, ax\n\t"
-    "mov gs, ax\n\t"
-    "mov ss, ax\n\t"
-    "mov sp, 0x7C00\n\t"
+    ".section .entry\n\t"
     "xor dh, dh\n\t"
     "push edx\n\t"
     "call main\n\t"
 );
 
-void bios_print(const char* str)
-{
-    asm (
-        "1:\n\t"
-        "lodsb\n\t"
-        "test al, al\n\t"
-        "jz 2\n\t"
-        "int 0x10\n\t"
-        "jmp 1b\n\t"
-        "2:\n\t"
-        :
-        : "a"(0x0E00), "S"(str)
-        : "cc", "memory"
-    );
-}
+#include <drivers/vga_textmode.h>
 
 void main(int boot_drive)
 {
-    bios_print("Hello from the AcornOS Bootloader!");
+    char* memory = (char*)0xb8000;
+
+    memory[0] = 'A';
+    memory[1] = 0x0F;
+
+    init_vga_textmode();
     for(;;);
 }

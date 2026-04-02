@@ -35,6 +35,7 @@ gdt:
     db 0x00                     ; base (mid 8 bits)
     db 10011010b                ; access
     db 11001111b                ; granularity
+    db 0x00                     ; base (high 8 bits)
     
 .gdt_protected_data:
     dw 0xFFFF                   ; limit
