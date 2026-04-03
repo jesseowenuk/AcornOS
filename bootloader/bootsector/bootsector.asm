@@ -36,15 +36,19 @@ initialise_cs:
     mov cx, 1
     call read_sectors
 
-    jc error
+    jc error_reading_disk
 
     mov si, done_message
     call simple_print
 
     jmp 0x7e00
 
-error:
-    mov si, error_message
+error_reading_disk:
+    mov si, error_message_disk
+    call simple_print
+
+error_enabling_a20:
+    mov si, error_message_a20
     call simple_print
 
 halt:
@@ -57,7 +61,8 @@ halt:
 loading_message         db 13, 10, 'AcornOS Bootloader', 13, 10, 10, 0
 stage2_message          db 'Stage 1: Loading Stage 2', 0
 done_message            db '  [DONE]', 13, 10, 0
-error_message           db 13, 10, 'Error, AcornOS boot halted.', 0
+error_message_disk      db 13, 10, 'Error reading disk, AcornOS boot halted.', 0
+error_message_a20       db 13, 10, 'Error enabling a20, AcornOS boot halted.', 0
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; BOOTSECTOR INCLUDES
@@ -81,11 +86,11 @@ dw 0xaa55
     mov cx, 6
     call read_sectors
 
-    jc error
+    jc error_reading_disk
 
 ; Enable A20
     call enable_a20 
-    jc error
+    jc error_enabling_a20
 
 ; Load the GDT
     lgdt [gdt]
