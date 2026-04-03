@@ -9,11 +9,6 @@ asm (
 
 void main(int boot_drive)
 {
-    char* memory = (char*)0xb8000;
-
-    memory[0] = 'A';
-    memory[1] = 0x0F;
-
     init_vga_textmode();
     for(;;);
 }
