@@ -15,6 +15,8 @@ static int cursor_status = 0;
 static uint8_t text_palette = 0x07;
 static uint8_t cursor_palette = 0x70;
 
+static void text_putchar(char character);
+
 static void clear_cursor()
 {
     video_memory[cursor_location + 1] = text_palette;
@@ -50,4 +52,27 @@ void init_vga_textmode(void)
 
     text_clear();
     return;
+}
+
+void text_write(const char *buffer, size_t length)
+{
+    for(size_t i = 0; i < length; i++)
+    {
+        text_putchar(buffer[i]);
+    }
+}
+
+static void text_putchar(char character)
+{
+    switch(character)
+    {
+        default:
+        {
+            clear_cursor();
+            video_memory[cursor_location] = character;
+            cursor_location += 2;
+            draw_cursor();
+            break;
+        }
+    }
 }
