@@ -83,7 +83,7 @@ dw 0xaa55
 ; Load stage 3
     mov ax, 2
     mov ebx, 0x8000
-    mov cx, 6
+    mov cx, 62
     call read_sectors
 
     jc error_reading_disk
