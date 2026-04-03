@@ -7,11 +7,15 @@ asm (
 
 #include <drivers/vga_textmode.h>
 #include <lib/real.h>
+#include <lib/print.h>
 
 void main(int boot_drive)
 {
     init_vga_textmode();
-    text_write("AcornOS Loader\n\n", 16);
+    print("AcornOS Loader\n\n");
+    print("=> Boot drive: %x\n", boot_drive);
+    print("\n");
+
     for(;;)
     {
         struct real_mode_registers registers = {0};
