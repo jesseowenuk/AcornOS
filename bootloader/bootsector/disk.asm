@@ -15,14 +15,6 @@ read_sector:
     ;   * Carry set <- on error
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-    ; Save the general purpose registers
-    push eax
-    push ebx
-    push ecx
-    push edx
-    push esi
-    push edi
-
     ; Populate the disk access packet struct with the buffer to store the bytes we read
     push es
     pop word [.target_segment]
@@ -41,13 +33,7 @@ read_sector:
     int 0x13
 
 .done:
-    ; Restore the registers and return
-    pop edi
-    pop esi
-    pop edx
-    pop ecx
-    pop ebx
-    pop eax
+    ; return
     ret
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
