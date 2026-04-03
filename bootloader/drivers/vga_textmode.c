@@ -11,7 +11,7 @@
 
 static char *video_memory = (char *)0xb8000;
 static size_t cursor_location = 0;
-static int cursor_status = 0;
+static int cursor_status = 1;
 static uint8_t text_palette = 0x07;
 static uint8_t cursor_palette = 0x70;
 
@@ -29,6 +29,26 @@ static void draw_cursor()
     {
         video_memory[cursor_location + 1] = cursor_palette;
     }
+}
+
+static void scroll()
+{
+    clear_cursor();
+
+    // Move the text up by one row
+    for(size_t i = 0; i < VGA_BOTTOM; i += 2)
+    {
+        video_memory[i] = video_memory[i + VGA_COLUMNS];
+    }
+
+    // Clear the last line
+    for(size_t i = VGA_BOTTOM; i > VGA_BOTTOM - VGA_COLUMNS; i -= 2)
+    {
+        video_memory[i] = text_palette;
+        video_memory[i - 1] = ' ';
+    }
+
+    return;
 }
 
 static void text_clear()
@@ -54,6 +74,19 @@ void init_vga_textmode(void)
     return;
 }
 
+static int text_get_cursor_position_y(void)
+{
+    return cursor_location / VGA_COLUMNS;
+}
+
+static void text_set_cursor_position(int x, int y)
+{
+    clear_cursor();
+    cursor_location = y * VGA_COLUMNS + x * 2;
+    draw_cursor();
+    return;
+}
+
 void text_write(const char *buffer, size_t length)
 {
     for(size_t i = 0; i < length; i++)
@@ -66,6 +99,22 @@ static void text_putchar(char character)
 {
     switch(character)
     {
+        case 0x0A:
+        {
+            if(text_get_cursor_position_y() == (VGA_ROWS - 1))
+            {
+                clear_cursor();
+                scroll();
+                text_set_cursor_position(0, (VGA_ROWS - 1));
+            }
+            else
+            {
+                text_set_cursor_position(0, (text_get_cursor_position_y() + 1));
+            }
+
+            break;
+        }
+
         default:
         {
             clear_cursor();

@@ -10,6 +10,6 @@ asm (
 void main(int boot_drive)
 {
     init_vga_textmode();
-    text_write("hello world", 11);
+    text_write("AcornOS Loader\n\n", 16);
     for(;;);
 }
