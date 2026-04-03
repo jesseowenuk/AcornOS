@@ -9,12 +9,20 @@ asm (
 #include <lib/real.h>
 #include <lib/print.h>
 
+extern uint8_t bss_begin;
+extern uint8_t bss_end;
+
 void main(int boot_drive)
 {
+    // Zero out the .bss section
+    for(uint8_t *p = &bss_begin; p < &bss_end; p++)
+    {
+        *p = 0;
+    }
+
     init_vga_textmode();
     print("AcornOS Loader\n\n");
-    print("=> Boot drive: %x\n", boot_drive);
-    print("\n");
+    print("=> Boot drive: %x\n\n", boot_drive);
 
     for(;;)
     {
