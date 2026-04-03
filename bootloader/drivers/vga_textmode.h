@@ -4,5 +4,6 @@
 #include <stddef.h>
 
 void init_vga_textmode(void);
+void text_write(const char *buffer, size_t length);
 
 #endif

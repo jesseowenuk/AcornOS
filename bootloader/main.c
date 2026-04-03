@@ -10,5 +10,6 @@ asm (
 void main(int boot_drive)
 {
     init_vga_textmode();
+    text_write("hello world", 11);
     for(;;);
 }
