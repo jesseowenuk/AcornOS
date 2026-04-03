@@ -14,7 +14,7 @@ INTERNAL_C_FLAGS = \
 	-fno-stack-protector \
 	-I.
 
-LD_FLAGS = 
+LD_FLAGS = -O2
 
 INTERNAL_LD_FLAGS = \
 	-m elf_i386 \
