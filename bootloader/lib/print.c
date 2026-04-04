@@ -1,115 +1,160 @@
-#include <stdint.h>
-#include <stddef.h>
-#include <stdarg.h>
+    #include <stdint.h>
+    #include <stddef.h>
+    #include <stdarg.h>
 
-#include <lib/print.h>
-#include <drivers/vga_textmode.h>
+    #include <lib/print.h>
+    #include <drivers/vga_textmode.h>
 
-static const char *base_digits = "0123456789abcdef";
+    static const char *base_digits = "0123456789abcdef";
 
-#define PRINT_BUFFER_MAX 512
+    #define PRINT_BUFFER_MAX 512
 
-// Adds a string to the buffer ready to print
-static void add_string(char *print_buffer, size_t *print_buffer_i, const char *string)
-{
-    size_t i;
-
-    for(i = 0; string[i]; i++)
+    // Adds a string to the buffer ready to print
+    static void add_string(char *print_buffer, size_t *print_buffer_i, const char *string)
     {
-        if(*print_buffer_i == (PRINT_BUFFER_MAX - 1))
+        size_t i;
+
+        for(i = 0; string[i]; i++)
         {
-            break;
+            if(*print_buffer_i == (PRINT_BUFFER_MAX - 1))
+            {
+                break;
+            }
+
+            print_buffer[(*print_buffer_i)++] = string[i];
         }
 
-        print_buffer[(*print_buffer_i)++] = string[i];
+        print_buffer[*print_buffer_i] = 0;
     }
 
-    print_buffer[*print_buffer_i] = 0;
-}
-
-// Adds a character to the buffer ready to print
-static void add_character(char *print_buffer, size_t *print_buffer_i, char character)
-{
-    if(*print_buffer_i < (PRINT_BUFFER_MAX - 1))
+    // Adds a character to the buffer ready to print
+    static void add_character(char *print_buffer, size_t *print_buffer_i, char character)
     {
-        print_buffer[(*print_buffer_i)++] = character;
+        if(*print_buffer_i < (PRINT_BUFFER_MAX - 1))
+        {
+            print_buffer[(*print_buffer_i)++] = character;
+        }
+
+        print_buffer[*print_buffer_i] = 0;
     }
 
-    print_buffer[*print_buffer_i] = 0;
-}
-
-// Adds a hex number to the buffer ready to print
-static void add_hex(char *print_buffer, size_t *print_buffer_i, uint32_t hex_number)
-{
-    int i;
-    char buffer[9] = {0};
-
-    if(!hex_number)
+    // Adds a integer number to the buffer ready to print
+    static void add_integer(char *print_buffer, size_t *print_buffer_i, int64_t integer_number)
     {
-        add_string(print_buffer, print_buffer_i, "0x0");
+        int i = 0;
+        char buffer[20] = {0};
+
+        if(!integer_number)
+        {
+            add_character(print_buffer, print_buffer_i, '0');
+            return;
+        }
+
+        // If this is a negative number?
+        int negative_number = integer_number < 0;
+        if(negative_number)
+        {
+            integer_number = -integer_number;
+        }
+
+        for(i = 18; integer_number; i--)
+        {
+            buffer[i] = (integer_number % 10) + 0x30;
+            integer_number = integer_number / 10;
+        }
+
+        if(negative_number)
+        {
+            buffer[i] = '-';
+        }
+        else
+        {
+            i++;
+        }
+
+        add_string(print_buffer, print_buffer_i, buffer + i);
+
         return;
     }
 
-    for(i = 7; hex_number; i--)
+    // Adds a hex number to the buffer ready to print
+    static void add_hex(char *print_buffer, size_t *print_buffer_i, uint32_t hex_number)
     {
-        buffer[i] = base_digits[(hex_number % 16)];
-        hex_number = hex_number / 16;
-    }
-    
-    add_string(print_buffer, print_buffer_i, "0x");
-    add_string(print_buffer, print_buffer_i, buffer + i + 1);
+        int i;
+        char buffer[9] = {0};
 
-    return;
-}
-
-void print(const char *format, ...)
-{
-    va_list arguments;
-    va_start(arguments, format);
-
-    char print_buffer[PRINT_BUFFER_MAX];
-    size_t print_buffer_i = 0;
-
-    while(*format != '\0')
-    {
-        // loop through non format specifying characters
-        while(*format && *format != '%')
+        if(!hex_number)
         {
-            add_character(print_buffer, &print_buffer_i, *format);
-            format++;
+            add_string(print_buffer, print_buffer_i, "0x0");
+            return;
         }
 
-        if(*format == '%')
+        for(i = 7; hex_number; i--)
         {
-            format++;
+            buffer[i] = base_digits[(hex_number % 16)];
+            hex_number = hex_number / 16;
+        }
+        
+        add_string(print_buffer, print_buffer_i, "0x");
+        add_string(print_buffer, print_buffer_i, buffer + i + 1);
 
-            if(*format != '\0')
+        return;
+    }
+
+    void print(const char *format, ...)
+    {
+        va_list arguments;
+        va_start(arguments, format);
+
+        char print_buffer[PRINT_BUFFER_MAX];
+        size_t print_buffer_i = 0;
+
+        while(*format != '\0')
+        {
+            // loop through non format specifying characters
+            while(*format && *format != '%')
             {
-
-                switch(*format)
-                {
-                    case 'x':
-                    {
-                        add_hex(print_buffer, &print_buffer_i, va_arg(arguments, uint32_t));
-                        break;
-                    }
-
-                    default:
-                    {
-                        add_character(print_buffer, &print_buffer_i, '?');
-                    }
-                }
-
+                add_character(print_buffer, &print_buffer_i, *format);
                 format++;
             }
-            else
+
+            if(*format == '%')
             {
-                // handle the trailing '%'
-                add_character(print_buffer, &print_buffer_i, '%');
+                format++;
+
+                if(*format != '\0')
+                {
+
+                    switch(*format)
+                    {
+                        case 'd':
+                        {
+                            add_integer(print_buffer, &print_buffer_i, (int64_t)va_arg(arguments, int32_t));
+                            break;
+                        }
+
+                        case 'x':
+                        {
+                            add_hex(print_buffer, &print_buffer_i, va_arg(arguments, uint32_t));
+                            break;
+                        }
+
+                        default:
+                        {
+                            add_character(print_buffer, &print_buffer_i, '?');
+                        }
+                    }
+
+                    format++;
+                }
+                else
+                {
+                    // handle the trailing '%'
+                    add_character(print_buffer, &print_buffer_i, '%');
+                }
             }
         }
-    }
 
-    va_end(arguments);
-    text_write(print_buffer, print_buffer_i);
-}
+        va_end(arguments);
+        text_write(print_buffer, print_buffer_i);
+    }
