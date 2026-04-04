@@ -127,6 +127,21 @@
 
                     switch(*format)
                     {
+                        case 's':
+                        {
+                            char *string = (char *)va_arg(arguments, const char *);
+                            if(!string)
+                            {
+                                add_string(print_buffer, &print_buffer_i, "(null)");
+                            }
+                            else
+                            {
+                                add_string(print_buffer, &print_buffer_i, string);
+                            }
+
+                            break;
+                        }
+
                         case 'd':
                         {
                             add_integer(print_buffer, &print_buffer_i, (int64_t)va_arg(arguments, int32_t));
