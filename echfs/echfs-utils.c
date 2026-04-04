@@ -4,6 +4,8 @@
 
 static int verbose = 0;
 
+static FILE* image;
+
 int main(int argc, char **argv)
 {
     // Check if the verbose flag has been passed in 
@@ -22,9 +24,18 @@ int main(int argc, char **argv)
         argc--;
     }
 
+    // If there is only 1 argument left, we don't have enough info
+    // to proceed - tell the user how to use this utility and exit.
     if(argc == 1)
     {
         fprintf(stderr, "Usage: %s (-v) [image] <action> <args...>\n", argv[0]);
+        return EXIT_SUCCESS;
+    }
+
+    // Try and open the file to be added
+    if((image = fopen(argv[1], "r+")) == NULL)
+    {
+        fprintf(stderr, "%s: error: couldn't access `%s`.\n", argv[0], argv[1]);
     }
 
     return EXIT_SUCCESS;
