@@ -8,6 +8,7 @@ asm (
 #include <drivers/vga_textmode.h>
 #include <lib/real.h>
 #include <lib/print.h>
+#include <lib/master_boot_record.h>
 
 extern uint8_t bss_begin;
 extern uint8_t bss_end;
@@ -20,9 +21,27 @@ void main(int boot_drive)
         *p = 0;
     }
 
+    // Inital message
     init_vga_textmode();
     print("AcornOS Loader\n\n");
     print("=> Boot drive: %x\n\n", boot_drive);
+
+    // Enumerate partitions
+    struct master_boot_record_partition partitions[4];
+
+    for(int i = 0; i < 4; i++)
+    {
+        print("=> Checking for partition %d...\n", i);
+        int result = master_boot_record_get_partition(&partitions[i], boot_drive, i);
+        if(result)
+        {
+            print("Not found!\n");
+        }
+        else
+        {
+            print("Found!\n");
+        }
+    }
 
     for(;;)
     {
