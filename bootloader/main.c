@@ -33,7 +33,7 @@ void main(int boot_drive)
 
     for(int i = 0; i < 4; i++)
     {
-        print("=> Checking for partition %d...\n", i);
+        print("=> Checking for partition %d...", i);
         int result = master_boot_record_get_partition(&partitions[i], boot_drive, i);
         if(result)
         {
