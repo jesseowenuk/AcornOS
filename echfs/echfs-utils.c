@@ -6,6 +6,33 @@ static int verbose = 0;
 
 static FILE* image;
 static uint64_t image_size;
+static uint64_t bytes_per_block;
+
+static void format_pass1(int argc, char **argv)
+{
+    if(argc <= 3)
+    {
+        fprintf(stderr, "%s: error: unspecified block size.\n", argv[0]);
+        fclose(image);
+        abort();
+    }
+
+    if(verbose)
+    {
+        fprintf(stdout, "formatting...\n");
+    }
+
+    // convert string into integer
+    bytes_per_block = atoi(argv[3]);
+
+    // check if block size is a multiple of 512
+    if((bytes_per_block <= 0) || (bytes_per_block % 512))
+    {
+        fprintf(stderr, "%s: error: block size MUST be a multiple of 512.\n", argv[0]);
+        fclose(image);
+        abort();
+    }
+}
 
 int main(int argc, char **argv)
 {
@@ -49,6 +76,11 @@ int main(int argc, char **argv)
 
     // rewind the file pointer back to the start of the file
     rewind(image);
+
+    if((argc > 2) && (!strcmp(argv[2], "format")))
+    {
+        format_pass1(argc, argv);
+    }
 
     return EXIT_SUCCESS;
 }
