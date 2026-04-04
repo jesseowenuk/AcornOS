@@ -29,4 +29,6 @@ int strncmp(const char *string_one, const char *string_two, size_t string_length
             return 1;
         }
     }
+
+    return 0;
 }

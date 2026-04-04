@@ -3,7 +3,7 @@
 
 #include <stddef.h>
 
-void *memcpy(void *destination, const void *source, size_t count);
-int strncmp(const char *string_one, const char *string_two);
+void *memcpy(void *destination, const void *source, size_t string_length);
+int strncmp(const char *string_one, const char *string_two, size_t string_length);
 
 #endif
