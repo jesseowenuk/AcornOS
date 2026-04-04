@@ -3,8 +3,11 @@
 
 #include <stdint.h>
 
+#define EFLAGS_CARRY_FLAG (1 << 0)
+
 struct real_mode_registers
 {
+    uint32_t eflags;
     uint32_t ebp;
     uint32_t edi;
     uint32_t esi;

@@ -21,6 +21,7 @@ void real_mode_interrupt(uint8_t interrupt_number, struct real_mode_registers *o
         "push esi\n\t"
         "push edi\n\t"
         "push ebp\n\t"
+        "pushf\n\t"
 
         // Jump to real mode
         "jmp 0x08:1f\n\t"
@@ -46,6 +47,7 @@ void real_mode_interrupt(uint8_t interrupt_number, struct real_mode_registers *o
         // Load in_registers
         "mov dword ptr ds:[5f], esp\n\t"
         "mov esp, dword ptr ds:[7f]\n\t"
+        "popfd\n\t"
         "pop ebp\n\t"
         "pop edi\n\t"
         "pop esi\n\t"
@@ -66,7 +68,7 @@ void real_mode_interrupt(uint8_t interrupt_number, struct real_mode_registers *o
         // so we can access them in C
         "mov dword ptr ds:[5f], esp\n\t"
         "mov esp, dword ptr ds:[6f]\n\t"
-        "add esp, 7*4\n\t"
+        "lea esp, [esp + 8*4]\n\t"
         "push eax\n\t"
         "push ebx\n\t"
         "push ecx\n\t"
@@ -74,6 +76,7 @@ void real_mode_interrupt(uint8_t interrupt_number, struct real_mode_registers *o
         "push esi\n\t"
         "push edi\n\t"
         "push ebp\n\t"
+        "pushfd\n\t"
         "mov esp, dword ptr ds:[5f]\n\t"
 
         // Back we go to protected mode
@@ -90,6 +93,7 @@ void real_mode_interrupt(uint8_t interrupt_number, struct real_mode_registers *o
         "mov ss, ax\n\t"
 
         // Restore the non-general purpose registers
+        "popf\n\t"
         "pop ebp\n\t"
         "pop edi\n\t"
         "pop esi\n\t"
