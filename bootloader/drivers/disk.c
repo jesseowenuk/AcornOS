@@ -5,6 +5,7 @@
 #include <lib/real.h>
 #include <lib/print.h>
 #include <lib/libc.h>
+#include <lib/master_boot_record.h>
 
 #define SECTOR_SIZE 512
 
@@ -75,4 +76,17 @@ int read(int drive, void *buffer, uint64_t location, uint64_t count)
     }
 
     return 0;
+}
+
+int read_partition(int drive, int partition, void *buffer, uint64_t location, uint64_t count)
+{
+    struct master_boot_record_partition the_partition;
+
+    int result = master_boot_record_get_partition(&the_partition, drive, partition);
+    if(result)
+    {
+        return result;
+    }
+
+    return read(drive, buffer, location + (the_partition.first_sector * 512), count);
 }

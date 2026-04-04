@@ -5,5 +5,6 @@
 #include <stdint.h>
 
 int read(int drive, void *buffer, uint64_t location, uint64_t count);
+int read_partition(int drive, int partition, void *buffer, uint64_t location, uint64_t count);
 
 #endif
