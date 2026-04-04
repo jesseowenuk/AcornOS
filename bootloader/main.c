@@ -13,6 +13,8 @@ asm (
 extern uint8_t bss_begin;
 extern uint8_t bss_end;
 
+#define KERNEL "acorn.bin"
+
 void main(int boot_drive)
 {
     // Zero out the .bss section
@@ -42,6 +44,11 @@ void main(int boot_drive)
             print("Found!\n");
         }
     }
+
+    // Load the file from partition 0 at 1MiB 
+    // TODO: Maybe later make it selectable if we want to share ;)
+    int partition = 0;
+    print("=> Booting %s in partition %d\n", KERNEL, partition);
 
     for(;;)
     {
