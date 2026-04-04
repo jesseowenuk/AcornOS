@@ -18,7 +18,7 @@ void *memcpy(void *destination, const void *source, size_t string_length)
     return destination;
 }
 
-int strcmp(const char *string_one, const char *string_two, size_t string_length)
+int strncmp(const char *string_one, const char *string_two, size_t string_length)
 {
     size_t i;
 
