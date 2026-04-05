@@ -308,6 +308,32 @@ static path_result_type path_resolver(const char *path, uint8_t type)
 
 }
 
+static inline uint64_t get_free_id(void)
+{
+    uint64_t id = 1;
+    uint64_t i;
+
+    uint64_t location = (directory_start * bytes_per_block);
+    fseek(image, (long)location, SEEK_SET);
+
+    for(i = 0; ; i++)
+    {
+        entry_type entry;
+        fread(&entry, sizeof(entry_type), 1, image);
+        if(!entry.parent_id)
+        {
+            break;
+        }
+
+        if((entry.type == 1) && (entry.payload == id))
+        {
+            id = (entry.payload + 1);
+        }
+    }
+
+    return id;
+}
+
 static void mkdir_command(int argc, char **argv)
 {
     uint64_t i;
@@ -340,6 +366,10 @@ static void mkdir_command(int argc, char **argv)
     {
         fprintf(stdout, "new directory's parent ID: %" PRIu64 "\n", entry.parent_id);
     }
+
+    entry.type = DIRECTORY_TYPE;
+    strcpy(entry.filename, path_result.name);
+    entry.payload = get_free_id();
 }
 
 int main(int argc, char **argv)
