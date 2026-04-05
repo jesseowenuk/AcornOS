@@ -1,8 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <inttypes.h>
 
-#define RESERVED_BLOCKS      16
+#define BYTES_PER_SECTOR        512
+#define SECTORS_PER_BLOCK       (bytes_per_block / BYTES_PER_SECTOR) 
+#define BYTES_PER_BLOCK         (SECTORS_PER_BLOCK * BYTES_PER_SECTOR)
+#define RESERVED_BLOCKS         16
 
 static int verbose = 0;
 
@@ -10,6 +14,19 @@ static FILE* image;
 static uint64_t image_size;
 static uint64_t blocks;
 static uint64_t bytes_per_block;
+
+static inline uint64_t read_qword(uint64_t location)
+{
+    uint64_t the_qword = 0;
+
+    // put the file pointer at the right location
+    fseek(image, (long)location, SEEK_SET);
+
+    // read the qword from this location in the file
+    fread(&the_qword, 8, 1, image);
+
+    return the_qword;
+}
 
 static inline void write_qword(uint64_t location, uint64_t the_qword)
 {
@@ -164,6 +181,33 @@ int main(int argc, char **argv)
     if(strncmp(signature, "_ECH_FS_", 8))
     {
         fprintf(stderr, "%s: error: echidnaFS signature missing.\n", argv[0]);
+        fclose(image);
+        return EXIT_FAILURE;
+    }
+
+    if(verbose)
+    {
+        fprintf(stdout, "echidnaFS signature found.\n");
+    }
+
+    if(verbose)
+    {
+        fprintf(stdout, "image size: %" PRIu64 " bytes\n", image_size);
+    }
+
+    // read the bytes per block from the directory structure
+    bytes_per_block = read_qword(28);
+
+    if(verbose)
+    {
+        fprintf(stdout, "bytes per block: %" PRIu64 "\n", BYTES_PER_BLOCK);
+    }
+
+    if(image_size % bytes_per_block)
+    {
+        fprintf(stderr, "%s: error: image is not block-aligned.\n", argv[0]);
+        fclose(image);
+        return EXIT_FAILURE;
     }
 
     return EXIT_SUCCESS;
