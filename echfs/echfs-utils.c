@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <inttypes.h>
+#include <sys/stat.h>
 #include <time.h>
 
 #define SEARCH_FAILURE          0xffffffffffffffff
@@ -17,6 +18,7 @@
 #define DIRECTORY_TYPE          1
 #define DELETED_ENTRY           0xfffffffffffffffe
 #define RESERVED_BLOCK          0xfffffffffffffff0
+#define END_OF_CHAIN            0xffffffffffffffff
 
 static int verbose = 0;
 
@@ -488,6 +490,187 @@ static void format_pass2(void)
     }
 }
 
+static uint64_t import_chain(FILE *source)
+{
+    uint64_t *block_buffer = malloc(bytes_per_block);
+    if(!block_buffer)
+    {
+        perror("malloc failure");
+        abort();
+    }
+
+    fseek(source, 0L, SEEK_END);
+    uint64_t source_size = (uint64_t)ftell(source);
+    rewind(source);
+
+    if(!source_size)
+    {
+        return END_OF_CHAIN;
+    }
+
+    uint64_t source_size_blocks = (source_size + bytes_per_block - 1) / bytes_per_block;
+
+    if(verbose)
+    {
+        fprintf(stdout, "file size: %" PRIu64 "\n", source_size);
+        fprintf(stdout, "file size: in blocks: %" PRIu64 "\n", source_size_blocks);
+    }
+
+    uint64_t *block_list = malloc(source_size_blocks * sizeof(uint64_t));
+    if(!block_list)
+    {
+        perror("malloc failure");
+        abort();
+    }
+
+    fseek(image, fat_start * bytes_per_block, SEEK_SET);
+    uint64_t block = 0;
+    for(uint64_t i = 0; i < source_size_blocks; i++)
+    {
+        uint64_t vvv;
+        for( ; fread(&vvv, sizeof(uint64_t), 1, image), vvv; block++);
+        block_list[i] = block++;
+    }
+
+    for(uint64_t i = 0; i < source_size_blocks; i++)
+    {
+        fseek(image, block_list[i] * bytes_per_block, SEEK_SET);
+
+        // copy block
+        fwrite(block_buffer, 1, fread(block_buffer, 1, bytes_per_block, source), image);
+    }
+
+    for(uint64_t i = 0; ; i++)
+    {
+        fseek(image, fat_start * bytes_per_block + block_list[i] * sizeof(uint64_t), SEEK_SET);
+        if(i == source_size_blocks - 1)
+        {
+            uint64_t vvv = END_OF_CHAIN;
+            fwrite(&vvv, sizeof(uint64_t), 1, image);
+            break;
+        }
+        fwrite(&block_list[i + 1], sizeof(uint64_t), 1, image);
+    }
+
+    block = block_list[0];
+
+    free(block_list);
+    free(block_buffer);
+    return block;
+}
+
+static void import_command(int argc, char **argv)
+{
+    FILE *source;
+    entry_type entry = {0};
+    uint64_t i;
+
+    // Check for input file
+    if(argc < 4)
+    {
+        fprintf(stderr, "%s: %s: missing argument: source file.\n", argv[0], argv[2]);
+        return;
+    }
+
+    // Check for desintation location in file system
+    if(argc < 5)
+    {
+        fprintf(stderr, "%s: %s: missing argument: destination file.\n", argv[0], argv[2]);
+    }
+
+    struct stat s;
+    stat(argv[3], &s);
+    if(!S_ISREG(s.st_mode))
+    {
+        fprintf(stderr, "%s: warning: source file `%s` is not a regular file, exiting.\n", argv[0], argv[3]);
+        return;
+    }
+
+    // make directory
+    if(path_resolver(argv[4], FILE_TYPE).failure)
+    {
+        char new_directory_name[4096];
+        int i = 0;
+    
+        while(argv[4][i] != '\0')
+        {
+            // copy until '/'
+            while(argv[4][i] != '\0' && argv[4][i] != '/')
+            {
+                new_directory_name[i] = argv[4][i];
+                i++;
+            }
+
+            new_directory_name[i] = '\0';
+
+            char *old_argv3 = argv[3];
+            argv[3] = new_directory_name;
+
+            mkdir_command(argc, argv);
+
+            argv[3] = old_argv3;
+
+            if(!path_resolver(argv[4], FILE_TYPE).failure)
+            {
+                break;
+            }
+
+            if(argv[4][i] == '/')
+            {
+                new_directory_name[i++] = '/';
+            }
+        }
+    }
+
+    path_result_type path_result = path_resolver(argv[4], FILE_TYPE);
+
+    // check if the file already exists in the file system
+    if(!path_result.not_found)
+    {
+        fprintf(stderr, "%s: %s: error: couldn't access `%s`.\n", argv[0], argv[2], argv[4]);
+        return;
+    }
+
+    // try and open the file for reading
+    if((source = fopen(argv[3], "r")) == NULL)
+    {
+        fprintf(stderr, "%s: %s: error: couldn't access `%s`.\n", argv[0], argv[2], argv[4]);
+        return;
+    }
+
+    entry.parent_id = path_result.parent.payload;
+    entry.type = FILE_TYPE;
+    strcpy(entry.filename, path_result.name);
+    entry.payload = import_chain(source);
+    fseek(source, 0L, SEEK_END);
+    entry.size = (uint64_t)ftell(source);
+    entry.time = (uint64_t)time(NULL);
+
+    // find empty entry
+    uint64_t location = (directory_start * bytes_per_block);
+    fseek(image, (long)location, SEEK_SET);
+    for(i = 0; ; i++)
+    {
+        entry_type entry_i;
+        fread(&entry_i, sizeof(entry_type), 1, image);
+        if((entry_i.parent_id == 0 || entry_i.parent_id == DELETED_ENTRY))
+        {
+            break;
+        }
+    }
+
+    write_entry(i, &entry);
+
+    fclose(source);
+
+    if(verbose)
+    {
+        fprintf(stdout, "imported file `%s` as `%s`\n", argv[3], argv[4]);
+    }
+
+    return;
+}
+
 int main(int argc, char **argv)
 {
     // Check if the verbose flag has been passed in 
@@ -662,6 +845,10 @@ int main(int argc, char **argv)
         else if(!strcmp(argv[2], "format"))
         {
             format_pass2();
+        }
+        else if(!strcmp(argv[2], "import"))
+        {
+            import_command(argc, argv);
         }
     }
     
