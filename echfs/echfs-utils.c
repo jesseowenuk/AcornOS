@@ -99,6 +99,20 @@ static inline void read_entry(entry_type *result, uint64_t entry)
     fread(result, sizeof(entry_type), 1, image);
 }
 
+static inline void write_entry(uint64_t entry, entry_type *entry_source)
+{
+    uint64_t location = (directory_start * bytes_per_block) + (entry * sizeof(entry_type));
+
+    if(location >= (directory_start + directory_size) * BYTES_PER_BLOCK)
+    {
+        fprintf(stderr, "PANIC: ATTEMPTING TO WRITE DIRECTORY OUT OF BOUNDS!\n");
+        abort();
+    }
+
+    fseek(image, (long)location, SEEK_SET);
+    fwrite(entry_source, sizeof(entry_type), 1, image);
+}
+
 static void format_pass1(int argc, char **argv)
 {
     if(argc <= 3)
@@ -436,6 +450,8 @@ static void mkdir_command(int argc, char **argv)
     }
 
     entry.time = (uint64_t)time(NULL);
+
+    write_entry(i, &entry);
 
     if(verbose)
     {
