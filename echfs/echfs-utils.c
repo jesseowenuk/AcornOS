@@ -2,11 +2,26 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define RESERVED_BLOCK      0xfffffffffffffff0
+
 static int verbose = 0;
 
 static FILE* image;
 static uint64_t image_size;
+static uint64_t blocks;
 static uint64_t bytes_per_block;
+
+static inline void write_qword(uint64_t location, uint64_t the_qword)
+{
+    // put the file pointer in the right place according to the location
+    // provided
+    fseek(image, (long)location, SEEK_SET);
+
+    // write the qword provided into this location in the file
+    fwrite(&the_qword, 8, 1, image);
+
+    return;
+}
 
 static void format_pass1(int argc, char **argv)
 {
@@ -40,6 +55,32 @@ static void format_pass1(int argc, char **argv)
         fclose(image);
         abort();
     }
+
+    // calculate the number of blocks needed
+    blocks = image_size / bytes_per_block;
+
+    // write signature
+    fseek(image, 4, SEEK_SET);
+    fputs("_ECH_FS_", image);
+    
+    // total blocks
+    write_qword(12, blocks);
+
+    // directory size
+    // blocks / 20 (roughly 5% of the total)
+    write_qword(20, blocks / 20);
+
+    // block size
+    write_qword(28, bytes_per_block);
+
+    fseek(image, (RESERVED_BLOCK * bytes_per_block), SEEK_SET);
+
+    if(verbose)
+    {
+        fprintf(stdout, "zeroing");
+    }
+    
+    return;
 }
 
 int main(int argc, char **argv)
