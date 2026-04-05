@@ -16,6 +16,7 @@
 #define FILE_TYPE               0
 #define DIRECTORY_TYPE          1
 #define DELETED_ENTRY           0xfffffffffffffffe
+#define RESERVED_BLOCK          0xfffffffffffffff0
 
 static int verbose = 0;
 
@@ -470,6 +471,23 @@ static void mkdir_command(int argc, char **argv)
     return;
 }
 
+static void format_pass2(void)
+{
+    // mark reserved blocks
+    uint64_t location = fat_start * bytes_per_block;
+
+    for(uint64_t i = 0; i < (RESERVED_BLOCKS + fat_size + directory_size); i++)
+    {
+        write_qword(location, RESERVED_BLOCK);
+        location += sizeof(uint64_t);
+    }
+
+    if(verbose)
+    {
+        fprintf(stdout, "format complete!\n");
+    }
+}
+
 int main(int argc, char **argv)
 {
     // Check if the verbose flag has been passed in 
@@ -640,6 +658,10 @@ int main(int argc, char **argv)
         else if(!strcmp(argv[2], "ls"))
         {
             ls_command(argc, argv);
+        }
+        else if(!strcmp(argv[2], "format"))
+        {
+            format_pass2();
         }
     }
     
