@@ -150,9 +150,20 @@ int main(int argc, char **argv)
     // rewind the file pointer back to the start of the file
     rewind(image);
 
+    // If "format" argument provided do the first pass of formatting
+    // (writing the signature, the directory blocks and zeroing the rest)
     if((argc > 2) && (!strcmp(argv[2], "format")))
     {
         format_pass1(argc, argv);
+    }
+
+    // Check the provided file is a valid ECHS formatted file
+    char signature[8] = {0};
+    fseek(image, 4, SEEK_SET);
+    fread(signature, 8, 1, image);
+    if(strncmp(signature, "_ECH_FS_", 8))
+    {
+        fprintf(stderr, "%s: error: echidnaFS signature missing.\n", argv[0]);
     }
 
     return EXIT_SUCCESS;
