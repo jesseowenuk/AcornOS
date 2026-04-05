@@ -309,6 +309,59 @@ static path_result_type path_resolver(const char *path, uint8_t type)
 
 }
 
+static void ls_command(int argc, char **argv)
+{
+    uint64_t id;
+
+    if(argc < 4)
+    {
+        id = ROOT_ID;
+    }
+    else
+    {
+        if(path_resolver(argv[3], DIRECTORY_TYPE).not_found)
+        {
+            fprintf(stderr, "%s: %s: error: invalid directory `%s`.\n", argv[0], argv[2], argv[3]);
+            return;
+        }
+        else
+        {
+            id = path_resolver(argv[3], DIRECTORY_TYPE).target.payload;
+        }
+    }
+
+    if(verbose)
+    {
+        fprintf(stdout, " ---- ls ----\n");
+    }
+
+    entry_type entry;
+    read_entry(&entry, id);
+    for(uint64_t i = 0; entry.parent_id; i++)
+    {
+        if(entry.parent_id != id)
+        {
+            continue;
+        }
+
+        if(entry.type == DIRECTORY_TYPE)
+        {
+            fputc('[', stdout);
+        }
+
+        fputs(entry.filename, stdout);
+
+        if(entry.type == DIRECTORY_TYPE)
+        {
+            fputc(']', stdout);
+        }
+
+        fputc('\n', stdout);
+    }
+
+    return;
+}
+
 static inline uint64_t get_free_id(void)
 {
     uint64_t id = 1;
@@ -559,7 +612,15 @@ int main(int argc, char **argv)
         {
             mkdir_command(argc, argv);
         }
+        else if(!strcmp(argv[2], "ls"))
+        {
+            ls_command(argc, argv);
+        }
     }
+    
+
+
+    fclose(image);
 
     return EXIT_SUCCESS;
 }
