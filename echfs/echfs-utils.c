@@ -3,10 +3,18 @@
 #include <string.h>
 #include <inttypes.h>
 
+#define SEARCH_FAILURE          0xffffffffffffffff
+#define ROOT_ID                 0xffffffffffffffff
 #define BYTES_PER_SECTOR        512
 #define SECTORS_PER_BLOCK       (bytes_per_block / BYTES_PER_SECTOR) 
 #define BYTES_PER_BLOCK         (SECTORS_PER_BLOCK * BYTES_PER_SECTOR)
+#define ENTRIES_PER_SECTOR      2
+#define ENTRIES_PER_BLOCK       (SECTORS_PER_BLOCK * ENTRIES_PER_SECTOR)
+#define FILENAME_LENGTH         218
 #define RESERVED_BLOCKS         16
+#define FILE_TYPE               0
+#define DIRECTORY_TYPE          1
+#define DELETED_ENTRY           0xfffffffffffffffe
 
 static int verbose = 0;
 
@@ -19,6 +27,29 @@ static uint64_t directory_size;
 static uint64_t directory_start;
 static uint64_t data_start;
 static uint64_t bytes_per_block;
+
+typedef struct
+{
+    uint64_t parent_id;
+    uint8_t type;
+    char filename[FILENAME_LENGTH]; 
+    uint8_t permissions;
+    uint16_t owner;
+    uint16_t group;
+    uint64_t time;
+    uint64_t payload;
+    uint64_t size;
+} __attribute__((packed)) entry_type;
+
+typedef struct
+{
+    uint64_t target_entry;
+    entry_type target;
+    entry_type parent;
+    char name[FILENAME_LENGTH];
+    int failure;
+    int not_found;
+} path_result_type;
 
 static inline uint16_t read_word(uint64_t location)
 {
@@ -51,6 +82,20 @@ static inline void write_qword(uint64_t location, uint64_t the_qword)
     fwrite(&the_qword, 8, 1, image);
 
     return;
+}
+
+static inline void read_entry(entry_type *result, uint64_t entry)
+{
+    uint64_t location = (directory_start * bytes_per_block) + (entry * sizeof(entry_type));
+
+    if(location >= (directory_start + directory_size) * bytes_per_block)
+    {
+        fprintf(stderr, "PANIC! ATTEMPTING TO READ DIRECTORY OUT OF BOUNDS!\n");
+        abort();
+    }
+
+    fseek(image, (long)location, SEEK_SET);
+    fread(result, sizeof(entry_type), 1, image);
 }
 
 static void format_pass1(int argc, char **argv)
@@ -135,6 +180,166 @@ static void format_pass1(int argc, char **argv)
     }
     
     return;
+}
+
+static uint64_t search(const char *name, uint64_t parent, uint8_t type)
+{
+    // returns unique entry number, SEARCH_FAILURE upon failure / not found
+    uint64_t location = (directory_start * bytes_per_block);
+    fseek(image, (long)location, SEEK_SET);
+    for(uint64_t i = 0; ; i++)
+    {
+        entry_type entry;
+
+        fread(&entry, sizeof(entry_type), 1, image);
+
+        // Check if past last entry
+        if(!entry.parent_id)
+        {
+            return SEARCH_FAILURE;
+        }
+
+        // Check if past directory table
+        if(i >= (directory_size * ENTRIES_PER_BLOCK))
+        {
+            return SEARCH_FAILURE;
+        }
+
+        if((entry.parent_id == parent) && (entry.type == type) && (!strcmp(entry.filename, name)))
+        {
+            return i;
+        }
+    }
+}
+
+static path_result_type path_resolver(const char *path, uint8_t type)
+{
+    // returns a sruct of useful information
+    // failure flag set upon failure
+    // not_found flag set on not found
+    // even if the file is not found, info about the "parent"
+    // directory and name are still returned.
+    char name[FILENAME_LENGTH];
+    entry_type parent = {0};
+    int last = 0;
+    int i;
+    path_result_type result;
+    entry_type empty_entry = {0};
+
+    // Construct the inital result structure
+    result.name[0] = 0;
+    result.target_entry = 0;
+    result.parent = empty_entry;
+    result.target = empty_entry;
+    result.failure = 0;
+    result.not_found = 0;
+
+    parent.payload = ROOT_ID;
+
+    if((type == DIRECTORY_TYPE) && !strcmp(path, "/"))
+    {
+        result.target.payload = ROOT_ID;
+        return result;  // exception for root
+    }
+
+    if((type == FILE_TYPE) && !strcmp(path, "/"))
+    {
+        result.failure = 1;
+        return result;  // fail if looking for a file named "/"
+    }
+
+    if(*path == '/')
+    {
+        path++;
+    }
+
+    int done = 0;
+
+    while(!done)
+    {
+        i = 0;
+        last = 0;
+
+        while(*path != '/')
+        {
+            if(!*path)
+            {
+                last = 1;
+                break;
+            }
+
+            name[i++] = *path;
+            path++;
+        }
+
+        name[i] = 0;
+
+        if(!last)
+        {
+            uint64_t search_result = search(name, parent.payload, DIRECTORY_TYPE);
+            if(search_result == SEARCH_FAILURE)
+            {
+                result.failure = 1;
+                return result;
+            }
+
+            read_entry(&parent, search_result);
+        }
+        else
+        {
+            uint64_t search_result = search(name, parent.payload, type);
+            if(search_result == SEARCH_FAILURE)
+            {
+                result.not_found = 1;
+            }
+            else
+            {
+                read_entry(&result.target, search_result);
+                result.target_entry = search_result;
+            }
+
+            result.parent = parent;
+            strcpy(result.name, name);
+            done = 1;
+        }
+    }
+
+    return result;
+
+}
+
+static void mkdir_command(int argc, char **argv)
+{
+    uint64_t i;
+    entry_type entry = {0};
+
+    if(argc < 4)
+    {
+        fprintf(stderr, "%s: %s: missing argument: directory name.\n", argv[0], argv[2]);
+        return;
+    }
+
+    path_result_type path_result = path_resolver(argv[3], DIRECTORY_TYPE);
+
+    // find empty entry
+    uint64_t location = (directory_start * bytes_per_block);
+    fseek(image, (long)location, SEEK_SET);
+    for(i = 0; ; i++)
+    {
+        entry_type entry_i;
+        fread(&entry_i, sizeof(entry_type), 1, image);
+        if((entry_i.parent_id == 0) || (entry_i.parent_id == DELETED_ENTRY))
+        {
+            break;
+        }
+    }
+
+    entry.parent_id = path_result.parent.payload;
+
+    if(verbose)
+    {
+        fprintf(stdout, "new directory's parent ID: %" PRIu64 "\n", entry.parent_id);
+    }
 }
 
 int main(int argc, char **argv)
@@ -295,6 +500,14 @@ int main(int argc, char **argv)
         if(verbose)
         {
             fprintf(stdout, "the image is NOT bootable\n");
+        }
+    }
+
+    if(argc > 2)
+    {
+        if(!strcmp(argv[2], "mkdir"))
+        {
+            mkdir_command(argc, argv);
         }
     }
 
