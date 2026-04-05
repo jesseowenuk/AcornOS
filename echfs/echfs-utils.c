@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define RESERVED_BLOCK      0xfffffffffffffff0
+#define RESERVED_BLOCKS      16
 
 static int verbose = 0;
 
@@ -73,11 +73,35 @@ static void format_pass1(int argc, char **argv)
     // block size
     write_qword(28, bytes_per_block);
 
-    fseek(image, (RESERVED_BLOCK * bytes_per_block), SEEK_SET);
+    fseek(image, (RESERVED_BLOCKS * bytes_per_block), SEEK_SET);
 
     if(verbose)
     {
         fprintf(stdout, "zeroing");
+    }
+
+    // Zero out the rest of the image
+    uint8_t *zero_block = calloc(bytes_per_block, 1);
+    if(!zero_block)
+    {
+        perror("calloc failure");
+        abort();
+    }
+
+    for(uint64_t i = (RESERVED_BLOCKS * bytes_per_block); i < image_size; i += bytes_per_block)
+    {
+        fwrite(zero_block, bytes_per_block, 1, image);
+        if(verbose)
+        {
+            fputc('.', stdout);
+        }
+    }
+
+    free(zero_block);
+
+    if(verbose)
+    {
+        fputc('\n', stdout);
     }
     
     return;
