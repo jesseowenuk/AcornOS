@@ -13,7 +13,20 @@ static int verbose = 0;
 static FILE* image;
 static uint64_t image_size;
 static uint64_t blocks;
+static uint64_t fat_size;
+static uint64_t fat_start = RESERVED_BLOCKS;
+static uint64_t directory_size;
+static uint64_t directory_start;
+static uint64_t data_start;
 static uint64_t bytes_per_block;
+
+static inline uint16_t read_word(uint64_t location)
+{
+    uint16_t the_word = 0;
+    fseek(image, (long)location, SEEK_SET);
+    fread(&the_word, 2, 1, image);
+    return the_word;
+}
 
 static inline uint64_t read_qword(uint64_t location)
 {
@@ -225,6 +238,64 @@ int main(int argc, char **argv)
     if(read_qword(12) != blocks)
     {
         fprintf(stderr, "%s: warning: declared block count mismatch.\n", argv[0]);
+    }
+
+    fat_size = (blocks * sizeof(uint64_t)) / bytes_per_block;
+
+    if((blocks * sizeof(uint64_t )) % bytes_per_block)
+    {
+        fat_size++;
+    }
+
+    if(verbose)
+    {
+        fprintf(stdout, "expected allocation table size: %" PRIu64 " blocks\n", fat_size);
+    }
+
+    if(verbose)
+    {
+        fprintf(stdout, "expected allocation table start: block %" PRIu64 "\n", fat_start);
+    }
+
+    directory_size = read_qword(20);
+
+    if(verbose)
+    {
+        fprintf(stdout, "declared directory size: %" PRIu64 " blocks\n", directory_size);
+    }
+
+    directory_start = fat_start + fat_size;
+
+    if(verbose)
+    {
+        fprintf(stdout, "expected directory start: block %" PRIu64 "\n", directory_start);
+    }
+
+    data_start = RESERVED_BLOCKS + fat_size + directory_size;
+
+    if(verbose)
+    {
+        fprintf(stdout, "expected reserved blocks: %" PRIu64 "\n", data_start);
+    }
+
+    if(verbose)
+    {
+        fprintf(stdout, "expected usable blocks: %" PRIu64 "\n", blocks - data_start);
+    }
+
+    if(read_word(510) == 0xaa55)
+    {
+        if(verbose)
+        {
+            fprintf(stdout, "the image is bootable\n");
+        }
+    }
+    else
+    {
+        if(verbose)
+        {
+            fprintf(stdout, "the image is NOT bootable\n");
+        }
     }
 
     return EXIT_SUCCESS;
