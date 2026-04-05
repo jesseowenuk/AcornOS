@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <inttypes.h>
+#include <time.h>
 
 #define SEARCH_FAILURE          0xffffffffffffffff
 #define ROOT_ID                 0xffffffffffffffff
@@ -370,6 +371,25 @@ static void mkdir_command(int argc, char **argv)
     entry.type = DIRECTORY_TYPE;
     strcpy(entry.filename, path_result.name);
     entry.payload = get_free_id();
+
+    if(verbose)
+    {
+        fprintf(stdout, "new directory's ID: %" PRIu64 "\n", entry.payload);
+    }
+
+    if(verbose)
+    {
+        fprintf(stdout, "writing to entry #%" PRIu64 "\n", i);
+    }
+
+    entry.time = (uint64_t)time(NULL);
+
+    if(verbose)
+    {
+        fprintf(stdout, "created directory `%s`\n", argv[3]);
+    }
+
+    return;
 }
 
 int main(int argc, char **argv)
