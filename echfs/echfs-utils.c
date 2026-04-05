@@ -210,5 +210,12 @@ int main(int argc, char **argv)
         return EXIT_FAILURE;
     }
 
+    blocks = image_size / bytes_per_block;
+
+    if(verbose)
+    {
+        fprintf(stdout, "block count: %" PRIu64 "\n", blocks);
+    }
+
     return EXIT_SUCCESS;
 }
