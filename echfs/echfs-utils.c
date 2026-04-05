@@ -217,5 +217,15 @@ int main(int argc, char **argv)
         fprintf(stdout, "block count: %" PRIu64 "\n", blocks);
     }
 
+    if(verbose)
+    {
+        fprintf(stdout, "declared block count: %" PRIu64 "\n", read_qword(12));
+    }
+
+    if(read_qword(12) != blocks)
+    {
+        fprintf(stderr, "%s: warning: declared block count mismatch.\n", argv[0]);
+    }
+
     return EXIT_SUCCESS;
 }
