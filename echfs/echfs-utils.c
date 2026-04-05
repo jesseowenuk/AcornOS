@@ -349,10 +349,19 @@ static void ls_command(int argc, char **argv)
         fprintf(stdout, " ---- ls ----\n");
     }
 
+    uint64_t max_entries = (directory_size * bytes_per_block) / sizeof(entry_type);
+
     entry_type entry;
-    read_entry(&entry, id);
-    for(uint64_t i = 0; entry.parent_id; i++)
+    for(uint64_t i = 0; i < max_entries; i++)
     {
+        read_entry(&entry, i);
+
+        // skip unused entries
+        if(entry.parent_id == 0 || entry.parent_id == DELETED_ENTRY)
+        {
+            continue;
+        }
+
         if(entry.parent_id != id)
         {
             continue;
