@@ -671,6 +671,86 @@ static void import_command(int argc, char **argv)
     return;
 }
 
+static void export_chain(FILE *destination, entry_type source)
+{
+    uint64_t current_block;
+    uint8_t *block_buffer = malloc(bytes_per_block);
+    if(!block_buffer)
+    {
+        perror("malloc failure");
+        abort();
+    }
+
+    for(current_block = source.payload; current_block != END_OF_CHAIN; )
+    {
+        fseek(image, (long)(current_block * bytes_per_block), SEEK_SET);
+
+        // copy the block
+        if(((uint64_t)ftell(destination) + bytes_per_block) >= source.size)
+        {
+            fread(block_buffer, source.size % bytes_per_block, 1, image);
+            fwrite(block_buffer, source.size % bytes_per_block, 1, destination);
+            break;
+        }
+        else
+        {
+            fread(block_buffer, bytes_per_block, 1, image);
+            fwrite(block_buffer, source.size, 1, destination);
+        }
+
+        current_block = read_qword((fat_start * bytes_per_block) + current_block * sizeof(uint64_t));
+    }
+
+    free(block_buffer);
+    return;
+}
+
+static void export_command(int argc, char **argv)
+{
+    FILE *desintation;
+
+    // Check the source file is provided
+    if(argc < 4)
+    {
+        fprintf(stderr, "%s: %s: missing argument: source file.\n", argv[0], argv[2]);
+        return;
+    }
+
+    // Check the destination file is provided
+    if(argc < 5)
+    {
+        fprintf(stderr, "%s: %s: missing argument: destination file.\n", argv[0], argv[2]);
+        return;
+    }
+
+    path_result_type path_result = path_resolver(argv[3], FILE_TYPE);
+
+    // Check if this file doesn't exist
+    if(path_result.not_found)
+    {
+        fprintf(stderr, "%s: %s: error: file `%s` not found.\n", argv[0], argv[2], argv[3]);
+        return;
+    }
+
+    // Try and open the desintation file for writing
+    if((desintation = fopen(argv[4], "w")) == NULL)
+    {
+        fprintf(stderr, "%s: %s: error: couldn't access `%s`.\n", argv[0], argv[2], argv[4]);
+        return;
+    }
+
+    export_chain(desintation, path_result.target);
+
+    fclose(desintation);
+
+    if(verbose)
+    {
+        fprintf(stdout, "exported file `%s` as `%s`\n", argv[3], argv[4]);
+    }
+
+    return;
+}
+
 int main(int argc, char **argv)
 {
     // Check if the verbose flag has been passed in 
@@ -850,9 +930,19 @@ int main(int argc, char **argv)
         {
             import_command(argc, argv);
         }
+        else if(!strcmp(argv[2], "export"))
+        {
+            export_command(argc, argv);
+        }
+        else
+        {
+            fprintf(stderr, "%s: error: invalid action: `%s`.\n", argv[0], argv[2]);
+        }
     }
-    
-
+    else
+    {
+        fprintf(stderr, "%s: no action specified, exiting.\n", argv[0]);
+    }
 
     fclose(image);
 
