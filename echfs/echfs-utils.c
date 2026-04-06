@@ -36,7 +36,7 @@ typedef struct
 {
     uint64_t parent_id;
     uint8_t type;
-    char filename[FILENAME_LENGTH]; 
+    char name[FILENAME_LENGTH]; 
     uint8_t permissions;
     uint16_t owner;
     uint16_t group;
@@ -223,7 +223,7 @@ static uint64_t search(const char *name, uint64_t parent, uint8_t type)
             return SEARCH_FAILURE;
         }
 
-        if((entry.parent_id == parent) && (entry.type == type) && (!strcmp(entry.filename, name)))
+        if((entry.parent_id == parent) && (entry.type == type) && (!strcmp(entry.name, name)))
         {
             return i;
         }
@@ -375,7 +375,7 @@ static void ls_command(int argc, char **argv)
             fputc('[', stdout);
         }
 
-        fputs(entry.filename, stdout);
+        fputs(entry.name, stdout);
 
         if(entry.type == DIRECTORY_TYPE)
         {
@@ -448,7 +448,7 @@ static void mkdir_command(int argc, char **argv)
     }
 
     entry.type = DIRECTORY_TYPE;
-    strcpy(entry.filename, path_result.name);
+    strcpy(entry.name, path_result.name);
     entry.payload = get_free_id();
 
     if(verbose)
@@ -640,7 +640,7 @@ static void import_command(int argc, char **argv)
 
     entry.parent_id = path_result.parent.payload;
     entry.type = FILE_TYPE;
-    strcpy(entry.filename, path_result.name);
+    strcpy(entry.name, path_result.name);
     entry.payload = import_chain(source);
     fseek(source, 0L, SEEK_END);
     entry.size = (uint64_t)ftell(source);
