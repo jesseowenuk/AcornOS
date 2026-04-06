@@ -1,6 +1,9 @@
+#include "master_boot_record.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <getopt.h>
 #include <inttypes.h>
 #include <sys/stat.h>
 #include <time.h>
@@ -21,8 +24,11 @@
 #define END_OF_CHAIN            0xffffffffffffffff
 
 static int verbose = 0;
+static int master_boot_record = 0;
+static int master_boot_record_part = 0;
 
 static FILE* image;
+static uint64_t partition_offset;
 static uint64_t image_size;
 static uint64_t blocks;
 static uint64_t fat_size;
@@ -31,6 +37,11 @@ static uint64_t directory_size;
 static uint64_t directory_start;
 static uint64_t data_start;
 static uint64_t bytes_per_block;
+
+static void echfs_fseek(FILE *file, uint64_t location, int mode)
+{
+    fseek(file, location + partition_offset, mode);
+}
 
 typedef struct
 {
@@ -60,7 +71,7 @@ typedef struct
 static inline uint16_t read_word(uint64_t location)
 {
     uint16_t the_word = 0;
-    fseek(image, (long)location, SEEK_SET);
+    echfs_fseek(image, (long)location, SEEK_SET);
     fread(&the_word, 2, 1, image);
     return the_word;
 }
@@ -70,7 +81,7 @@ static inline uint64_t read_qword(uint64_t location)
     uint64_t the_qword = 0;
 
     // put the file pointer at the right location
-    fseek(image, (long)location, SEEK_SET);
+    echfs_fseek(image, (long)location, SEEK_SET);
 
     // read the qword from this location in the file
     fread(&the_qword, 8, 1, image);
@@ -82,7 +93,7 @@ static inline void write_qword(uint64_t location, uint64_t the_qword)
 {
     // put the file pointer in the right place according to the location
     // provided
-    fseek(image, (long)location, SEEK_SET);
+    echfs_fseek(image, (long)location, SEEK_SET);
 
     // write the qword provided into this location in the file
     fwrite(&the_qword, 8, 1, image);
@@ -100,7 +111,7 @@ static inline void read_entry(entry_type *result, uint64_t entry)
         abort();
     }
 
-    fseek(image, (long)location, SEEK_SET);
+    echfs_fseek(image, (long)location, SEEK_SET);
     fread(result, sizeof(entry_type), 1, image);
 }
 
@@ -114,7 +125,7 @@ static inline void write_entry(uint64_t entry, entry_type *entry_source)
         abort();
     }
 
-    fseek(image, (long)location, SEEK_SET);
+    echfs_fseek(image, (long)location, SEEK_SET);
     fwrite(entry_source, sizeof(entry_type), 1, image);
 }
 
@@ -155,7 +166,7 @@ static void format_pass1(int argc, char **argv)
     blocks = image_size / bytes_per_block;
 
     // write signature
-    fseek(image, 4, SEEK_SET);
+    echfs_fseek(image, 4, SEEK_SET);
     fputs("_ECH_FS_", image);
     
     // total blocks
@@ -168,7 +179,7 @@ static void format_pass1(int argc, char **argv)
     // block size
     write_qword(28, bytes_per_block);
 
-    fseek(image, (RESERVED_BLOCKS * bytes_per_block), SEEK_SET);
+    echfs_fseek(image, (RESERVED_BLOCKS * bytes_per_block), SEEK_SET);
 
     if(verbose)
     {
@@ -206,7 +217,7 @@ static uint64_t search(const char *name, uint64_t parent, uint8_t type)
 {
     // returns unique entry number, SEARCH_FAILURE upon failure / not found
     uint64_t location = (directory_start * bytes_per_block);
-    fseek(image, (long)location, SEEK_SET);
+    echfs_fseek(image, (long)location, SEEK_SET);
     for(uint64_t i = 0; ; i++)
     {
         entry_type entry;
@@ -396,7 +407,7 @@ static inline uint64_t get_free_id(void)
     uint64_t i;
 
     uint64_t location = (directory_start * bytes_per_block);
-    fseek(image, (long)location, SEEK_SET);
+    echfs_fseek(image, (long)location, SEEK_SET);
 
     for(i = 0; ; i++)
     {
@@ -431,7 +442,7 @@ static void mkdir_command(int argc, char **argv)
 
     // find empty entry
     uint64_t location = (directory_start * bytes_per_block);
-    fseek(image, (long)location, SEEK_SET);
+    echfs_fseek(image, (long)location, SEEK_SET);
     for(i = 0; ; i++)
     {
         entry_type entry_i;
@@ -504,7 +515,7 @@ static uint64_t import_chain(FILE *source)
         abort();
     }
 
-    fseek(source, 0L, SEEK_END);
+    echfs_fseek(source, 0L, SEEK_END);
     uint64_t source_size = (uint64_t)ftell(source);
     rewind(source);
 
@@ -528,7 +539,7 @@ static uint64_t import_chain(FILE *source)
         abort();
     }
 
-    fseek(image, fat_start * bytes_per_block, SEEK_SET);
+    echfs_fseek(image, fat_start * bytes_per_block, SEEK_SET);
     uint64_t block = 0;
     for(uint64_t i = 0; i < source_size_blocks; i++)
     {
@@ -539,7 +550,7 @@ static uint64_t import_chain(FILE *source)
 
     for(uint64_t i = 0; i < source_size_blocks; i++)
     {
-        fseek(image, block_list[i] * bytes_per_block, SEEK_SET);
+        echfs_fseek(image, block_list[i] * bytes_per_block, SEEK_SET);
 
         // copy block
         fwrite(block_buffer, 1, fread(block_buffer, 1, bytes_per_block, source), image);
@@ -547,7 +558,7 @@ static uint64_t import_chain(FILE *source)
 
     for(uint64_t i = 0; ; i++)
     {
-        fseek(image, fat_start * bytes_per_block + block_list[i] * sizeof(uint64_t), SEEK_SET);
+        echfs_fseek(image, fat_start * bytes_per_block + block_list[i] * sizeof(uint64_t), SEEK_SET);
         if(i == source_size_blocks - 1)
         {
             uint64_t vvv = END_OF_CHAIN;
@@ -647,7 +658,7 @@ static void import_command(int argc, char **argv)
     entry.type = FILE_TYPE;
     strcpy(entry.name, path_result.name);
     entry.payload = import_chain(source);
-    fseek(source, 0L, SEEK_END);
+    echfs_fseek(source, 0L, SEEK_END);
     entry.size = (uint64_t)ftell(source);
     entry.created_time = s.st_ctimespec.tv_sec;
     entry.amended_time = s.st_atimespec.tv_sec;
@@ -656,7 +667,7 @@ static void import_command(int argc, char **argv)
 
     // find empty entry
     uint64_t location = (directory_start * bytes_per_block);
-    fseek(image, (long)location, SEEK_SET);
+    echfs_fseek(image, (long)location, SEEK_SET);
     for(i = 0; ; i++)
     {
         entry_type entry_i;
@@ -691,7 +702,7 @@ static void export_chain(FILE *destination, entry_type source)
 
     for(current_block = source.payload; current_block != END_OF_CHAIN; )
     {
-        fseek(image, (long)(current_block * bytes_per_block), SEEK_SET);
+        echfs_fseek(image, (long)(current_block * bytes_per_block), SEEK_SET);
 
         // copy the block
         if(((uint64_t)ftell(destination) + bytes_per_block) >= source.size)
@@ -794,7 +805,7 @@ int main(int argc, char **argv)
 
     // Calculate the size of the file provided.
     // Move the file pointer to the end of the file
-    fseek(image, 0L, SEEK_END);
+    echfs_fseek(image, 0L, SEEK_END);
 
     // Use ftell to read the current position in the file
     image_size = (uint64_t)ftell(image);
@@ -811,7 +822,7 @@ int main(int argc, char **argv)
 
     // Check the provided file is a valid ECHS formatted file
     char signature[8] = {0};
-    fseek(image, 4, SEEK_SET);
+    echfs_fseek(image, 4, SEEK_SET);
     fread(signature, 8, 1, image);
     if(strncmp(signature, "_ECH_FS_", 8))
     {
