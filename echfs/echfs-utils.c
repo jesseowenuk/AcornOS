@@ -12,7 +12,7 @@
 #define BYTES_PER_BLOCK         (SECTORS_PER_BLOCK * BYTES_PER_SECTOR)
 #define ENTRIES_PER_SECTOR      2
 #define ENTRIES_PER_BLOCK       (SECTORS_PER_BLOCK * ENTRIES_PER_SECTOR)
-#define FILENAME_LENGTH         218
+#define FILENAME_LENGTH         201
 #define RESERVED_BLOCKS         16
 #define FILE_TYPE               0
 #define DIRECTORY_TYPE          1
@@ -37,10 +37,12 @@ typedef struct
     uint64_t parent_id;
     uint8_t type;
     char name[FILENAME_LENGTH]; 
-    uint8_t permissions;
+    uint64_t amended_time;
+    uint64_t modified_time;
+    uint64_t permissions;
     uint16_t owner;
     uint16_t group;
-    uint64_t time;
+    uint64_t created_time;
     uint64_t payload;
     uint64_t size;
 } __attribute__((packed)) entry_type;
@@ -461,8 +463,11 @@ static void mkdir_command(int argc, char **argv)
         fprintf(stdout, "writing to entry #%" PRIu64 "\n", i);
     }
 
-    entry.time = (uint64_t)time(NULL);
-
+    uint64_t current_time = (uint64_t)time(NULL);
+    entry.created_time = current_time;
+    entry.amended_time = current_time;
+    entry.modified_time = current_time;
+    entry.permissions = 0b111111111;            // TODO: set appropriate permissions.
     write_entry(i, &entry);
 
     if(verbose)
@@ -644,7 +649,10 @@ static void import_command(int argc, char **argv)
     entry.payload = import_chain(source);
     fseek(source, 0L, SEEK_END);
     entry.size = (uint64_t)ftell(source);
-    entry.time = (uint64_t)time(NULL);
+    entry.created_time = s.st_ctimespec.tv_sec;
+    entry.amended_time = s.st_atimespec.tv_sec;
+    entry.modified_time = s.st_mtimespec.tv_sec;
+    entry.permissions = (uint64_t)(s.st_mode & ((1 << 9) - 1));
 
     // find empty entry
     uint64_t location = (directory_start * bytes_per_block);
