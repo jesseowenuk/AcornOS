@@ -467,7 +467,7 @@ static void mkdir_command(int argc, char **argv)
     entry.created_time = current_time;
     entry.amended_time = current_time;
     entry.modified_time = current_time;
-    entry.permissions = 0b111111111;            // TODO: set appropriate permissions.
+    entry.permissions = 0644;            // TODO: set appropriate permissions.
     write_entry(i, &entry);
 
     if(verbose)
