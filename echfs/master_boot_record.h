@@ -7,4 +7,4 @@ struct master_boot_record_partition
     uint64_t sector_count;
 };
 
-struct master_boot_record_parition master_boot_record_get_partition(FILE *file, int partition);
+struct master_boot_record_partition master_boot_record_get_partition(FILE *file, int partition);

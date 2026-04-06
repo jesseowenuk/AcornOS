@@ -9,6 +9,7 @@ asm (
 #include <lib/real.h>
 #include <lib/print.h>
 #include <lib/master_boot_record.h>
+#include <filesystem/echfs.h>
 
 extern uint8_t bss_begin;
 extern uint8_t bss_end;
@@ -47,8 +48,9 @@ void main(int boot_drive)
 
     // Load the file from partition 0 at 1MiB 
     // TODO: Maybe later make it selectable if we want to share ;)
-    int partition = 0;
+    int partition = 1;
     print("=> Booting %s in partition %d\n", KERNEL, partition);
+    load_echfs_file(boot_drive, partition, (void *)0x100000, KERNEL);
 
     for(;;)
     {

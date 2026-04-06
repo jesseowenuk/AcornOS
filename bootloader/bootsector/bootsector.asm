@@ -71,8 +71,9 @@ error_message_a20       db 13, 10, 'Error enabling a20, AcornOS boot halted.', 0
 %include 'disk.asm'
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; PADDING & MAGIC NUMBER
+; SPACE FOR MBR PARTITON TABLE, PADDING & MAGIC NUMBER
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+times 0x1b8-($-$$) db 0 
 times 510-($-$$) db 0
 dw 0xaa55
 
