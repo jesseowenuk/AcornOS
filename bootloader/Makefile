@@ -19,6 +19,7 @@ LD_FLAGS = -O2
 INTERNAL_LD_FLAGS = \
 	-m elf_i386 \
 	-nostdlib \
+	-no-pie \
 	-Tlinker.ld
 
 .PHONY: all clean
