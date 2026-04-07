@@ -155,7 +155,7 @@ static void format_pass1(int argc, char **argv)
     }
 
     // check if the image is block-aligned
-    if(image_size & bytes_per_block)
+    if(image_size % bytes_per_block)
     {
         fprintf(stderr, "%s: error: image is not block-aligned.\n", argv[0]);
         fclose(image);
