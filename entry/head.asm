@@ -5,9 +5,11 @@
 ;
 
 startup_32:
-    mov eax, 0x10
+    mov eax, 0x20
     mov ds, ax
     mov es, ax
     mov fs, ax
     mov gs, ax
+    hlt
+
     hlt
