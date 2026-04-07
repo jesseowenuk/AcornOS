@@ -52,7 +52,15 @@ void main(int boot_drive)
     print("=> Booting %s in partition %d\n", KERNEL, partition);
     load_echfs_file(boot_drive, partition, (void *)0x100000, KERNEL);
 
-    for(;;)
+    // Boot the kernel
+    asm volatile (
+        "jmp 0x100000"
+        :
+        : "b" ("")
+        : "memory"
+    );
+
+    /*for(;;)
     {
         struct real_mode_registers registers = {0};
 
@@ -61,5 +69,5 @@ void main(int boot_drive)
 
         char character = (char)(registers.eax & 0xff);
         text_write(&character, 1);
-    }
+    }*/
 }
