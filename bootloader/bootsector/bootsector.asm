@@ -93,6 +93,40 @@ dw 0xaa55
     call enable_a20 
     jc error_enabling_a20
 
+; re-program the 8259 - put them right after the intel-reserved
+; hardware interrupts at int 0x20-0x2f
+
+    ; start with initialisation sequence
+    mov al, 0x11
+    out 0x20, al
+    out 0xA0, al
+
+    ; new start address of the hardware interrupts (chip 1)
+    mov al, 0x20
+    out 0x21, al
+    
+    ; new start address of the hardware interrupts (chip 2)
+    mov al, 0x28
+    out 0xA1, al
+
+    ; 8259-1 is master
+    mov al, 0x04
+    out 0x21, al
+
+    ; 8259-2 is slave
+    mov al, 0x02
+    out 0xA1, al
+
+    ; 8086 mode for both
+    mov al, 0x01
+    out 0x21, al
+    out 0xA1, al
+
+    ; mask off all the interrupts for now
+    mov al, 0xFF
+    out 0x21, al
+    out 0xA1, al
+
 ; Load the GDT
     lgdt [gdt]
 
