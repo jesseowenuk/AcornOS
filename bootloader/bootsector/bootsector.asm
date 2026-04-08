@@ -93,6 +93,12 @@ dw 0xaa55
     call enable_a20 
     jc error_enabling_a20
 
+; empty 8042 to make sure the keyboard command queue is empty
+empty_8042:    
+    in al, 0x64
+    test al, 2
+    jnz empty_8042
+
 ; re-program the 8259 - put them right after the intel-reserved
 ; hardware interrupts at int 0x20-0x2f
 
