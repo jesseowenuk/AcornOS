@@ -50,11 +50,12 @@ void main(int boot_drive)
     // TODO: Maybe later make it selectable if we want to share ;)
     int partition = 1;
     print("=> Booting %s in partition %d\n", KERNEL, partition);
-    load_echfs_file(boot_drive, partition, (void *)0x100000, KERNEL);
+    //load_echfs_file(boot_drive, partition, (void *)0x100000, KERNEL);
+    load_echfs_file(boot_drive, partition, (void *)0x0, KERNEL);
 
     // Boot the kernel
     asm volatile (
-        "jmp 0x100000"
+        "jmp 0x0"
         :
         : "b" ("")
         : "memory"
