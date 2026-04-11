@@ -3,24 +3,33 @@
 ;
 ; This file contains the 32-bit startup code.
 ;
-
 extern stack_start
 global startup_32
 
 startup_32:
-    ;mov eax, 0x0
-    ;mov ds, eax
-    ;mov es, eax
-    ;mov fs, eax
-    ;mov gs, eax
+    call setup_idt
 
-    lgdt[kernel_gdt]
+    mov byte [0xB8000], 'X'
+
+    hlt
+    ;lgdt[kernel_gdt]
+
+    ;jmp dword 0x08:flush
+
+flush:
+    hlt
+    mov eax, 0x10
+    mov ds, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
   
-    lss esp, [stack_start]
+    
 
     hlt
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; INCLUDES
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+%include 'idt.asm'
 %include 'gdt.asm'
